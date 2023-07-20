@@ -6,6 +6,8 @@
 Application::Application() : window{ sf::VideoMode{ SCREEN_WIDTH, SCREEN_HEIGHT, 32 }, "ST vs MT Perf Tests", sf::Style::Default }
 {
 	exitApp = false;
+
+	ImGui::SFML::Init(window);
 }
 
 /// <summary>
@@ -13,7 +15,7 @@ Application::Application() : window{ sf::VideoMode{ SCREEN_WIDTH, SCREEN_HEIGHT,
 /// </summary>
 Application::~Application()
 {
-
+	ImGui::SFML::Shutdown();
 }
 
 /// <summary>
@@ -34,11 +36,11 @@ void Application::start()
 			timeSinceLastUpdate -= timePerFrame;
 			processEvents();
 			update(timePerFrame);
+			draw();
 		}		
-
-		draw();
 	}
 }
+
 /// <summary>
 /// Process events.
 /// </summary>
@@ -48,6 +50,8 @@ void Application::processEvents()
 
 	while (window.pollEvent(event))
 	{
+		ImGui::SFML::ProcessEvent(window, event);
+
 		if (event.type == sf::Event::Closed)
 		{
 			window.close();
@@ -68,8 +72,13 @@ void Application::processEvents()
 /// </summary>
 /// <param name="dt">Delta time.</param>
 void Application::update(const sf::Time &dt)
-{
+{	
+	ImGui::SFML::Update(window, dt);
 
+	// Test ImGui window
+	ImGui::Begin("ImGui Window");
+	ImGui::Text("Alan Bolger");
+	ImGui::End();
 }
 
 /// <summary>
@@ -78,6 +87,10 @@ void Application::update(const sf::Time &dt)
 void Application::draw()
 {
 	window.clear(sf::Color::Black);
+
+	// Draw stuff goes here
+
+	ImGui::SFML::Render(window);
 
 	window.display();
 }
