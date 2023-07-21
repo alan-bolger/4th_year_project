@@ -3,6 +3,7 @@
 
 #include "imgui.h"
 #include "imgui-SFML.h"
+#include "ThreadPool.h"
 
 #include <SFML/Graphics.hpp>
 

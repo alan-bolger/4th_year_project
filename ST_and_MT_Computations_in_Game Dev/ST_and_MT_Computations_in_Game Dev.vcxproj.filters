@@ -21,6 +21,9 @@
     <ClInclude Include="h\Application.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="h\ThreadPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp">
@@ -43,6 +46,9 @@
     </ClCompile>
     <ClCompile Include="imgui\imgui-SFML.cpp">
       <Filter>ImGui Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ThreadPool.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
