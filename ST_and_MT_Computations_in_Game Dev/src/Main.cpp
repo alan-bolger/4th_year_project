@@ -7,7 +7,7 @@
 /// Data finished: TBC
 /// </summary>
 /// <returns>0 for successful exit.</returns>
-int WinMain()
+int main()
 {
 	Application *app = new Application();
 	app->start();
