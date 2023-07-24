@@ -10,6 +10,9 @@ Application::Application() : window{ sf::VideoMode{ SCREEN_WIDTH, SCREEN_HEIGHT,
 	threadPool = std::make_unique<ThreadPool>(std::thread::hardware_concurrency());
 
 	ImGui::SFML::Init(window);
+
+	ImGuiIO &io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 }
 
 /// <summary>
@@ -79,7 +82,10 @@ void Application::update(const sf::Time &dt)
 	ImGui::SFML::Update(window, dt);
 
 	// Test ImGui window
+	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+
 	ImGui::Begin("Project");
+
 	ImGui::Text("Test Threadpool");
 
 	if (ImGui::Button("Single Threaded", ImVec2(120, 24)))
