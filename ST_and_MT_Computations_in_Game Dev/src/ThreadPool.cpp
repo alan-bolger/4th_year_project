@@ -3,10 +3,10 @@
 /// <summary>
 /// ThreadPool constructor.
 /// </summary>
-/// <param name="numThreads">Set the number of threads to be used.</param>
-ThreadPool::ThreadPool(std::size_t numThreads)
+/// <param name="threadAmount">Set the number of threads in the pool.</param>
+ThreadPool::ThreadPool(std::size_t threadAmount)
 {
-	start(numThreads);
+	start(threadAmount);
 }
 
 /// <summary>
@@ -20,27 +20,34 @@ ThreadPool::~ThreadPool()
 /// <summary>
 /// Start pool.
 /// </summary>
-/// <param name="numThreads">Set the number of threads to be used.</param>
-void ThreadPool::start(std::size_t numThreads)
+/// <param name="threadAmount">Set the number of threads in the pool.</param>
+void ThreadPool::start(std::size_t threadAmount)
 {
-	for (unsigned int i = 0u; i < numThreads; ++i)
+	for (auto i = 0u; i < threadAmount; ++i)
 	{
-		threads.emplace_back([=] 
+		threads.emplace_back([=]
 		{
+			// Loop runs as long as there's jobs
 			while (true)
 			{
 				Job job;
-				std::unique_lock<std::mutex> lock{ eventMutex };
-				eventVar.wait(lock, [=] { return stopping || !jobs.empty(); });
 
-				// Break out of loop if thread is stopping and there's no jobs left
-				if (stopping && jobs.empty())
+				// New scope
 				{
-					break;
-				}
+					std::unique_lock<std::mutex> lock{ eventMutex };
+					eventVar.wait(lock, [=] { return stopping || !jobs.empty(); });
 
-				job = std::move(jobs.front());
-				jobs.pop();
+					// Break out of loop if thread is stopping and there's no jobs left
+					if (stopping && jobs.empty())
+					{
+						break;
+					}
+
+					// Move front job to current job
+					job = std::move(jobs.front());
+					jobs.pop();
+				}
+				
 				job();
 			}
 		});
@@ -52,11 +59,16 @@ void ThreadPool::start(std::size_t numThreads)
 /// </summary>
 void ThreadPool::stop() noexcept
 {
-	std::unique_lock<std::mutex> lock{ eventMutex };
-	stopping = true;
+	// New scope
+	{
+		std::unique_lock<std::mutex> lock{ eventMutex };
+		stopping = true;
+	}
+
 	eventVar.notify_all();
 
-	for (std::thread &thread : threads)
+	// Close threads
+	for (auto &thread : threads)
 	{
 		thread.join();
 	}

@@ -7,6 +7,8 @@ Application::Application() : window{ sf::VideoMode{ SCREEN_WIDTH, SCREEN_HEIGHT,
 {
 	exitApp = false;
 
+	threadPool = std::make_unique<ThreadPool>(std::thread::hardware_concurrency());
+
 	ImGui::SFML::Init(window);
 }
 
@@ -34,10 +36,11 @@ void Application::start()
 		while (timeSinceLastUpdate > timePerFrame)
 		{
 			timeSinceLastUpdate -= timePerFrame;
+
 			processEvents();
 			update(timePerFrame);
 			draw();
-		}		
+		}
 	}
 }
 
@@ -76,8 +79,19 @@ void Application::update(const sf::Time &dt)
 	ImGui::SFML::Update(window, dt);
 
 	// Test ImGui window
-	ImGui::Begin("ImGui Window");
-	ImGui::Text("Alan Bolger");
+	ImGui::Begin("Project");
+	ImGui::Text("Test Threadpool");
+
+	if (ImGui::Button("Single Threaded", ImVec2(120, 24)))
+	{
+		executeTest(Test::SINGLE_THREADED);
+	}
+
+	if (ImGui::Button("Multi Threaded", ImVec2(120, 24)))
+	{
+		executeTest(Test::MULTI_THREADED);
+	}
+
 	ImGui::End();
 }
 
@@ -88,9 +102,45 @@ void Application::draw()
 {
 	window.clear(sf::Color::Black);
 
-	// Draw stuff goes here
-
 	ImGui::SFML::Render(window);
 
 	window.display();
+}
+
+/// <summary>
+/// Execute the threadpool test.
+/// </summary>
+void Application::executeTest(Test test)
+{
+	switch (test)
+	{
+	case Test::SINGLE_THREADED:
+
+		// Execute jobs one after another
+		for (int i = 0; i < 1000; i++)
+		{
+			job();
+		}
+
+		break;
+
+	case Test::MULTI_THREADED:
+
+		// Add jobs to the threadpool
+		for (int i = 0; i < 1000; i++)
+		{
+			threadPool->addJob([this] { job(); });
+		}
+
+		break;
+	}
+}
+
+/// <summary>
+/// This function is used to test that the threadpool is working.
+/// </summary>
+void Application::job()
+{	
+	std::cout << "Thread " << std::this_thread::get_id() << " finished" << std::endl;
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }
