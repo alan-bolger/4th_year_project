@@ -7,19 +7,10 @@ Application::Application() : window{ sf::VideoMode{ SCREEN_WIDTH, SCREEN_HEIGHT,
 {
 	exitApp = false;
 
-	threadPool = std::make_unique<ThreadPool>(std::thread::hardware_concurrency());
-
 	ImGui::SFML::Init(window);
 
 	ImGuiIO &io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-	// Quick test of Vec3 class
-	Vec3<float> vec1(4.0f, 3.5f, 9.0f);
-	Vec3<float> vec2(4.2f, 2.2f, 7.6f);
-	Vec3<float> result = vec1 + vec2; // Result should be (8.2, 5.7, 16.6)
-
-	std::cout << "Vec3 test result: (" << result.x << ", " << result.y << ", " << result.z << ")" << std::endl;
 }
 
 /// <summary>

@@ -3,8 +3,7 @@
 
 #include "imgui.h"
 #include "imgui-SFML.h"
-#include "ThreadPool.h"
-#include "Vec3.h"
+#include "Raytracer.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -20,7 +19,6 @@ private:
 	static const unsigned int SCREEN_HEIGHT = 720u;
 	sf::RenderWindow window;
 	bool exitApp;
-	std::unique_ptr<ThreadPool> threadPool;
 
 	void processEvents();
 	void update(const sf::Time &dt);
