@@ -3,7 +3,7 @@
 /// <summary>
 /// Application constructor.
 /// </summary>
-Application::Application() : window{ sf::VideoMode{ SCREEN_WIDTH, SCREEN_HEIGHT, 32 }, "ST vs MT Perf Tests", sf::Style::Default }
+Application::Application() : window{ sf::VideoMode{ SCREEN_WIDTH, SCREEN_HEIGHT, 32 }, "ST vs MT Test Suite", sf::Style::Default }
 {
 	exitApp = false;
 
@@ -13,6 +13,13 @@ Application::Application() : window{ sf::VideoMode{ SCREEN_WIDTH, SCREEN_HEIGHT,
 
 	ImGuiIO &io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+	// Quick test of Vec3 class
+	Vec3<float> vec1(4.0f, 3.5f, 9.0f);
+	Vec3<float> vec2(4.2f, 2.2f, 7.6f);
+	Vec3<float> result = vec1 + vec2; // Result should be (8.2, 5.7, 16.6)
+
+	std::cout << "Vec3 test result: (" << result.x << ", " << result.y << ", " << result.z << ")" << std::endl;
 }
 
 /// <summary>
@@ -81,21 +88,32 @@ void Application::update(const sf::Time &dt)
 {	
 	ImGui::SFML::Update(window, dt);
 
-	// Test ImGui window
+	// Cover entire window with dockspace
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
-	ImGui::Begin("Project");
+	// Select and load a test
+	ImGui::Begin("Test Inspector");
 
-	ImGui::Text("Test Threadpool");
-
-	if (ImGui::Button("Single Threaded", ImVec2(120, 24)))
+	if (ImGui::CollapsingHeader("Load Test"))
 	{
-		executeTest(Test::SINGLE_THREADED);
-	}
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-	if (ImGui::Button("Multi Threaded", ImVec2(120, 24)))
-	{
-		executeTest(Test::MULTI_THREADED);
+		ImGui::Text("Choose test and click\nthe LOAD button");
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::PushItemWidth(-1);
+
+		const char *items[] = { "T01 - Raytracing", "T02 - TBC", "T03 - TBC", "T04 - TBC", "T05 - TBC" };
+		static int item_current = 1;
+		ImGui::ListBox("ListBox", &item_current, items, IM_ARRAYSIZE(items), 5);
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		if (ImGui::Button("LOAD", ImVec2(60, 24)))
+		{
+			// Call function to load chosen test
+		}
 	}
 
 	ImGui::End();
@@ -111,42 +129,4 @@ void Application::draw()
 	ImGui::SFML::Render(window);
 
 	window.display();
-}
-
-/// <summary>
-/// Execute the threadpool test.
-/// </summary>
-void Application::executeTest(Test test)
-{
-	switch (test)
-	{
-	case Test::SINGLE_THREADED:
-
-		// Execute jobs one after another
-		for (int i = 0; i < 1000; i++)
-		{
-			job();
-		}
-
-		break;
-
-	case Test::MULTI_THREADED:
-
-		// Add jobs to the threadpool
-		for (int i = 0; i < 1000; i++)
-		{
-			threadPool->addJob([this] { job(); });
-		}
-
-		break;
-	}
-}
-
-/// <summary>
-/// This function is used to test that the threadpool is working.
-/// </summary>
-void Application::job()
-{	
-	std::cout << "Thread " << std::this_thread::get_id() << " finished" << std::endl;
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }
