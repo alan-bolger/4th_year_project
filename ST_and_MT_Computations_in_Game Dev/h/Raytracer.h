@@ -18,6 +18,8 @@
 
 #include <SFML/Graphics.hpp>
 
+constexpr auto PI = 3.141592653589793;
+
 using Vec3f = Vec3<float>;
 
 struct Sphere
@@ -31,10 +33,27 @@ struct Sphere
     Vec3f emissionColour;
     Vec3f rayOrigin;
 
+    /// <summary>
+    /// Sphere constructor.
+    /// </summary>
+    /// <param name="center">The sphere's center point.</param>
+    /// <param name="radius">The sphere's radius.</param>
+    /// <param name="surfaceColour">The sphere's surface colour.</param>
+    /// <param name="reflection">The sphere's reflection value.</param>
+    /// <param name="transparency">The sphere's transparency value.</param>
+    /// <param name="emission">The sphere's emission colour.</param>
     Sphere(const Vec3f &center, const float &radius, const Vec3f &surfaceColour, const float &reflection = 0.0f, const float &transparency = 0.0f, const Vec3f &emissionColour = 0.0f)
         :
         center(center), radius(radius), radius2(radius *radius), surfaceColour(surfaceColour), reflection(reflection), transparency(transparency), emissionColour(emissionColour) { }
 
+    /// <summary>
+    /// Compute a ray to sphere intersection using the geometric solution.
+    /// </summary>
+    /// <param name="rayOrigin">The origin point of the ray.</param>
+    /// <param name="rayDir">The direction of the ray.</param>
+    /// <param name="t0">Near value.</param>
+    /// <param name="t1">Far value.</param>
+    /// <returns>True if there's an intersection, false if there's no intersection.</returns>
     bool intersect(const Vec3f &rayOrigin, const Vec3f &rayDir, float &t0, float &t1) const
     {
         Vec3f l = center - rayOrigin;
@@ -60,11 +79,20 @@ public:
 	Raytracer(int w, int h);
 	~Raytracer();
     void handleUI();
+    void render();
 
 private:	
 	int renderW;
 	int renderH;
+    Vec3f rayOrigin;
+    int fov;
+    std::unique_ptr<ThreadPool> threadPool;
     std::unique_ptr<sf::RenderTexture> renderTexture;
+    std::vector<uint8_t> pixelArray;
+
+    float mix(const float &a, const float &b, const float &mix);
+    Vec3f trace(const Vec3f &rayOrigin, const Vec3f &rayDir, const int &depth);
+    void renderSection(sf::Vector2f pixTL, sf::Vector2f pixBR);
 };
 
 #endif // !RAYTRACER_H
