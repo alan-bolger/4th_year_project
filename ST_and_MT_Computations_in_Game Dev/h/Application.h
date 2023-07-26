@@ -18,6 +18,11 @@
 
 #include <SFML/Graphics.hpp>
 
+enum class TestID
+{
+	T01_RAYTRACER = 0
+};
+
 class Application
 {
 public:
@@ -30,9 +35,12 @@ private:
 	static const unsigned int SCREEN_HEIGHT = 720u;
 	sf::RenderWindow window;
 	bool exitApp;
+	Raytracer *raytracer = nullptr;
 
 	void processEvents();
 	void update(const sf::Time &dt);
+	void handleUI();
+	void loadTest(TestID testID);
 	void draw();
 };
 

@@ -84,6 +84,15 @@ void Application::update(const sf::Time &dt)
 	// Cover entire window with dockspace
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
+	// Update and draw UI
+	handleUI();
+}
+
+/// <summary>
+/// Update and draw all ImGui menus.
+/// </summary>
+void Application::handleUI()
+{
 	// Select and load a test
 	ImGui::Begin("Test Inspector");
 
@@ -91,25 +100,49 @@ void Application::update(const sf::Time &dt)
 	{
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::Text("Choose test and click\nthe LOAD button");
+		ImGui::Text("Select test");
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
 		ImGui::PushItemWidth(-1);
 
 		const char *items[] = { "T01 - Raytracing", "T02 - TBC", "T03 - TBC", "T04 - TBC", "T05 - TBC" };
-		static int item_current = 1;
+		static int item_current = 0;
 		ImGui::ListBox("ListBox", &item_current, items, IM_ARRAYSIZE(items), 5);
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		if (ImGui::Button("LOAD", ImVec2(60, 24)))
+		if (ImGui::Button("LOAD TEST", ImVec2(100, 24)))
 		{
-			// Call function to load chosen test
+			loadTest(static_cast<TestID>(item_current));
 		}
 	}
 
+	ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+	if (raytracer != nullptr) {	raytracer->handleUI(); }
+
 	ImGui::End();
+}
+
+/// <summary>
+/// Loads a test.
+/// </summary>
+/// <param name="testID">The test ID.</param>
+void Application::loadTest(TestID testID)
+{
+	switch (testID)
+	{
+		case TestID::T01_RAYTRACER:
+		{
+			if (raytracer == nullptr)
+			{
+				raytracer = new Raytracer(640, 480);
+			}
+
+			break;
+		}
+	}
 }
 
 /// <summary>

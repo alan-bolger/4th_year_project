@@ -11,6 +11,8 @@
 #ifndef RAYTRACER_H
 #define RAYTRACER_H
 
+#include "imgui.h"
+#include "imgui-SFML.h"
 #include "ThreadPool.h"
 #include "Vec3.h"
 
@@ -57,10 +59,12 @@ class Raytracer
 public:
 	Raytracer(int w, int h);
 	~Raytracer();
+    void handleUI();
 
 private:	
 	int renderW;
 	int renderH;
+    std::unique_ptr<sf::RenderTexture> renderTexture;
 };
 
 #endif // !RAYTRACER_H
