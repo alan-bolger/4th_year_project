@@ -1,3 +1,14 @@
+// --------------------------------------------
+// | Application.h                            |
+// | Application.cpp						  |
+// | -----------------------------------------|
+// | The Application class creates the main	  |
+// | render window, handles processing		  | 
+// | events, and updates and draws whichever  |
+// | test is currently active. All of the	  |
+// | ImGui menus are handled here also.		  |
+// --------------------------------------------
+
 #ifndef APPLICATION_H
 #define APPLICATION_H
 

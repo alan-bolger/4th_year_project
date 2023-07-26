@@ -7,8 +7,10 @@ Application::Application() : window{ sf::VideoMode{ SCREEN_WIDTH, SCREEN_HEIGHT,
 {
 	exitApp = false;
 
+	// Initialise ImGui SFML
 	ImGui::SFML::Init(window);
 
+	// Enable docking
 	ImGuiIO &io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 }

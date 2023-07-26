@@ -3,7 +3,9 @@
 /// <summary>
 /// Raytracer constructor.
 /// </summary>
-Raytracer::Raytracer()
+/// <param name="w">The width of the render.</param>
+/// <param name="h">The height of the render.</param>
+Raytracer::Raytracer(int w, int h) : renderW(w), renderH(h)
 {
 
 }
