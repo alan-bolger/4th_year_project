@@ -76,6 +76,7 @@ void Raytracer::handleUI()
 	// Render output window
 	ImGui::Begin("Render Result");
 
+    renderTexture->update(pixelArray.data());
 	ImGui::Image(*renderTexture);
 
 	ImGui::End();
@@ -88,6 +89,9 @@ void Raytracer::handleUI()
 /// <param name="multiThreaded">False for single-threaded and true for multi-threaded.</param>
 void Raytracer::render(bool multiThreaded)
 {
+    pixelArray.clear();
+    pixelArray.resize(renderW * renderH * 4);
+
 	if (multiThreaded)
 	{
 		// This renders using multi-threading
@@ -108,7 +112,10 @@ void Raytracer::render(bool multiThreaded)
 	else
 	{
 		// This renders using a single thread (this thread)
-		renderSection({ 0, 0 }, { renderW, renderH });
+        threadPool->addJob([=]
+            {
+                renderSection({ 0, 0 }, { renderW, renderH });
+            });
 	}
 }
 
@@ -289,7 +296,5 @@ void Raytracer::renderSection(sf::Vector2i pixTL, sf::Vector2i pixBR)
 			pixelArray[(index * 4) + 2] = (uint8_t)(std::min(1.0f, pixel.z) * 255);
 			pixelArray[(index * 4) + 3] = 255;
 		}
-
-        renderTexture->update(pixelArray.data());
 	}
 }

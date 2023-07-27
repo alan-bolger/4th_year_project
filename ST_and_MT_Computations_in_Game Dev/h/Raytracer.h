@@ -19,7 +19,7 @@
 #include <SFML/Graphics.hpp>
 
 constexpr auto PI = 3.141592653589793;
-constexpr auto MAX_BOUNCES = 10;
+constexpr auto MAX_BOUNCES = 50;
 
 struct Sphere
 {
@@ -83,7 +83,7 @@ private:
 	int renderW;
 	int renderH;
     Vec3f rayOrigin;
-    int fov;
+    int fov = 30;
     std::unique_ptr<ThreadPool> threadPool;
     std::unique_ptr<sf::Texture> renderTexture;
     std::vector<uint8_t> pixelArray;
