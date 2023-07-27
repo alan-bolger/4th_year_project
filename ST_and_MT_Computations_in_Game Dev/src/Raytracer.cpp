@@ -95,23 +95,59 @@ void Raytracer::render(bool multiThreaded)
 	if (multiThreaded)
 	{
 		// This renders using multi-threading
-		int numOfSections = 16;
-		int sectionWidth = renderW / numOfSections;
+        int numOfSectionsW = renderW / renderTileW;
+        int remainingW = renderW % renderTileW;
+
+        int numOfSectionsH = renderH / renderTileH;
+        int remainingH = renderH % renderTileH;
 
 		// Add the render jobs to the thread pool
-		for (int i = 0; i < numOfSections; ++i)
-		{
-			threadPool->addJob([=]
-				{
-					int startX = i * sectionWidth;
-					int endX = startX + sectionWidth;
-					renderSection(sf::Vector2i(startX, 0), sf::Vector2i(endX, renderH));
-				});
-		}
+        for (int y = 0; y < numOfSectionsH; ++y)
+        {
+            for (int x = 0; x < numOfSectionsW; ++x)
+            {
+                // This lambda adds blocks of code to the thread pool
+                threadPool->addJob([=]
+                {
+                    int startX = x * renderTileW;
+                    int startY = y * renderTileH;
+
+                    int endX = startX + renderTileW;
+                    int endY = startY + renderTileH;
+
+                    // This checks if we're on the last X section
+                    if (x == (numOfSectionsW - 1))
+                    {
+                        // If theres a W remainder, it means the final section width
+                        // is less than the renderTileW. endX must be adjusted so
+                        // that it ends on the last pixel instead of going out of bounds
+                        if (remainingW > 0)
+                        {
+                            endX = endX - (renderTileW - remainingW);
+                        }
+                    }
+
+                    // This checks if we're on the last Y section
+                    if (y == (numOfSectionsH - 1))
+                    {
+                        // If theres a H remainder, it means the final section height
+                        // is less than the renderTileH. endX must be adjusted so
+                        // that it ends on the last pixel instead of going out of bounds
+                        if (remainingH > 0)
+                        {
+                            endY = endY - (renderTileH - remainingH);
+                        }
+                    }
+
+                    renderSection(sf::Vector2i(startX, startY), sf::Vector2i(endX, endY));
+                });
+            }
+        }
 	}
 	else
 	{
 		// This renders using a single thread (this thread)
+        // The entire image is rendered in one sweep
         threadPool->addJob([=]
             {
                 renderSection({ 0, 0 }, { renderW, renderH });

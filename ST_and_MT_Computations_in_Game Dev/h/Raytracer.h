@@ -88,6 +88,8 @@ private:
     std::unique_ptr<sf::Texture> renderTexture;
     std::vector<uint8_t> pixelArray;
     std::vector<Sphere> spheres;
+    int renderTileW = 64;
+    int renderTileH = 64;
 
     void render(bool multiThreaded);
     float mix(const float &a, const float &b, const float &mix);
