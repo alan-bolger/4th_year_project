@@ -7,8 +7,25 @@
 /// <param name="h">The height of the render.</param>
 Raytracer::Raytracer(int w, int h) : renderW(w), renderH(h)
 {
-	renderTexture = std::make_unique<sf::RenderTexture>();
+	renderTexture = std::make_unique<sf::Texture>();
 	renderTexture->create(renderW, renderH);
+
+	threadPool = std::make_unique<ThreadPool>(std::thread::hardware_concurrency());
+
+	pixelArray.resize(renderW * renderH * 4);
+
+    // Add a few spheres below for testing.....
+
+    // This sphere acts as the ground
+    spheres.push_back(Sphere(Vec3f(0.0, -10000, -5), 10000, Vec3f(0.149, 0.509, 0.192), 1, 0, 0));
+
+    // Some spheres
+    spheres.push_back(Sphere(Vec3f(-3.4, 0.4, -12.0), 0.4, Vec3f(0.835, 0.443, 0.125), 0.1, 1, 0));
+    spheres.push_back(Sphere(Vec3f(-2.3, 0.2, -15.0), 0.2, Vec3f(0.713, 0.227, 0.631), 0.2, 1, 0));
+    spheres.push_back(Sphere(Vec3f(0.2, 2.3, -20.0), 2.3, Vec3f(0.721, 0.721, 0.721), 1, 1, 0));
+
+    // This is a light
+    spheres.push_back(Sphere(Vec3f(0, 5, 0), 3, Vec3f(0, 0, 0), 0, 0, Vec3f(1, 1, 1)));
 }
 
 /// <summary>
@@ -26,6 +43,7 @@ void Raytracer::handleUI()
 {
 	if (ImGui::CollapsingHeader("Raytracer"))
 	{
+		// Threading options
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
 		ImGui::Text("Select single-threaded\nor multi-threaded\nrendering");
@@ -42,14 +60,14 @@ void Raytracer::handleUI()
 
 		if (ImGui::Button("RENDER", ImVec2(60, 24)))
 		{
-			if (sel == 0)
-			{
-				// Do single threaded
-			}
-			else if (sel == 1)
-			{
-				// Do multi threaded
-			}
+			if (sel == 0) 
+            {
+                render(false);
+            }
+			else 
+            { 
+                render(true);
+            }
 		}
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
@@ -58,7 +76,7 @@ void Raytracer::handleUI()
 	// Render output window
 	ImGui::Begin("Render Result");
 
-	ImGui::Image(renderTexture->getTexture());
+	ImGui::Image(*renderTexture);
 
 	ImGui::End();
 }
@@ -67,25 +85,31 @@ void Raytracer::handleUI()
 /// This function divides the screen into sections.
 /// Each section can then be processed individually on its own thread.
 /// </summary>
-void Raytracer::render()
+/// <param name="multiThreaded">False for single-threaded and true for multi-threaded.</param>
+void Raytracer::render(bool multiThreaded)
 {
-	// This renders using multi-threading
-	int numOfSections = 16;
-	int sectionWidth = renderW / numOfSections;
-
-	// Add the render jobs to the thread pool
-	for (int i = 0; i < numOfSections; ++i)
+	if (multiThreaded)
 	{
-		threadPool->addJob([=]
-			{
-				int startX = i * sectionWidth;
-				int endX = startX + sectionWidth;
-				renderSection(sf::Vector2f(startX, 0), sf::Vector2f(endX, renderH));
-			});
-	}
+		// This renders using multi-threading
+		int numOfSections = 16;
+		int sectionWidth = renderW / numOfSections;
 
-	// This renders using a single thread
-	// renderSection({ 0, 0 }, { 1280, 720 });
+		// Add the render jobs to the thread pool
+		for (int i = 0; i < numOfSections; ++i)
+		{
+			threadPool->addJob([=]
+				{
+					int startX = i * sectionWidth;
+					int endX = startX + sectionWidth;
+					renderSection(sf::Vector2i(startX, 0), sf::Vector2i(endX, renderH));
+				});
+		}
+	}
+	else
+	{
+		// This renders using a single thread (this thread)
+		renderSection({ 0, 0 }, { renderW, renderH });
+	}
 }
 
 /// <summary>
@@ -115,7 +139,120 @@ float Raytracer::mix(const float &a, const float &b, const float &mix)
 /// <returns>The ray colour.</returns>
 Vec3f Raytracer::trace(const Vec3f &rayOrigin, const Vec3f &rayDir, const int &depth)
 {
-	return Vec3f();
+    float tNear = INFINITY;
+    const Sphere *sphere = nullptr;
+
+    // Find the intersection of this ray with the sphere in the scene
+    for (unsigned i = 0; i < spheres.size(); ++i)
+    {
+        float t0 = INFINITY;
+        float t1 = INFINITY;
+
+        if (spheres[i].intersect(rayOrigin, rayDir, t0, t1))
+        {
+            if (t0 < 0)
+            {
+                t0 = t1;
+            }
+
+            if (t0 < tNear)
+            {
+                tNear = t0;
+                sphere = &spheres[i];
+            }
+        }
+    }
+
+    // If there's no intersection then return black or background color
+    if (!sphere)
+    {
+        return Vec3f(1, 1, 1);
+    }
+
+    Vec3f surfaceColour = 0; // The colour of the surface at the ray intersection point
+    Vec3f pHit = rayOrigin + rayDir * tNear; // The point of intersection
+    Vec3f nHit = pHit - sphere->center; // The normal at the intersection point
+
+    nHit.normalize();
+
+    // If the normal and the view direction are not opposite to each other then
+    // reverse the normal direction. That also means we are inside the sphere, so set
+    // the inside bool to true. Finally, reverse the sign of IdotN which we want
+    // positive
+    float bias = 1e-4; // Add some bias to the point from which we will be tracing
+    bool inside = false;
+
+    if (rayDir.dot(nHit) > 0)
+    {
+        nHit = -nHit;
+        inside = true;
+    }
+
+    if ((sphere->transparency > 0 || sphere->reflection > 0) && depth < MAX_BOUNCES)
+    {
+        float facingRatio = -rayDir.dot(nHit);
+
+        // Change the mix value to tweak the effect
+        float fresnelEffect = mix(pow(1 - facingRatio, 3), 1, 0.1);
+
+        // Compute reflection direction (no need to normalize because all vectors
+        // are already normalized)
+        Vec3f reflDir = rayDir - nHit * 2 * rayDir.dot(nHit);
+        reflDir.normalize();
+
+        Vec3f reflection = trace(pHit + nHit * bias, reflDir, depth + 1);
+        Vec3f refraction = 0;
+
+        // If the sphere is also transparent then compute refraction ray (transmission)
+        if (sphere->transparency)
+        {
+            float ior = 1.1;
+            float eta = (inside) ? ior : 1 / ior; // Are we inside or outside the surface?
+            float cosI = -nHit.dot(rayDir);
+            float k = 1 - eta * eta * (1 - cosI * cosI);
+
+            Vec3f refrDir = rayDir * eta + nHit * (eta * cosI - std::sqrt(k));
+            refrDir.normalize();
+
+            refraction = trace(pHit - nHit * bias, refrDir, depth + 1);
+        }
+
+        // The result is a mix of reflection and refraction (if the sphere is transparent)
+        surfaceColour = (reflection * fresnelEffect + refraction * (1 - fresnelEffect) * sphere->transparency) * sphere->surfaceColour;
+    }
+    else
+    {
+        // It's a diffuse object so there's no need to trace any more
+        for (unsigned i = 0; i < spheres.size(); ++i)
+        {
+            if (spheres[i].emissionColour.x > 0)
+            {
+                // This is a light
+                Vec3f transmission = 1;
+                Vec3f lightDirection = spheres[i].center - pHit;
+                lightDirection.normalize();
+
+                for (unsigned j = 0; j < spheres.size(); ++j)
+                {
+                    if (i != j)
+                    {
+                        float t0 = 0.0f;
+                        float t1 = 0.0f;
+
+                        if (spheres[j].intersect(pHit + nHit * bias, lightDirection, t0, t1))
+                        {
+                            transmission = 0;
+                            break;
+                        }
+                    }
+                }
+
+                surfaceColour += sphere->surfaceColour * transmission * std::max(0.0f, nHit.dot(lightDirection)) * spheres[i].emissionColour;
+            }
+        }
+    }
+
+    return surfaceColour + sphere->emissionColour;
 }
 
 /// <summary>
@@ -126,7 +263,7 @@ Vec3f Raytracer::trace(const Vec3f &rayOrigin, const Vec3f &rayDir, const int &d
 /// </summary>
 /// <param name="pixTL">The coordinate of the upper-left corner of the section.</param>
 /// <param name="pixBR">The coordinate of the lower-right corner of the section.</param>
-void Raytracer::renderSection(sf::Vector2f pixTL, sf::Vector2f pixBR)
+void Raytracer::renderSection(sf::Vector2i pixTL, sf::Vector2i pixBR)
 {
 	float invWidth = 1.0f / static_cast<float>(renderW);
 	float invHeight = 1.0f / static_cast<float>(renderH);
@@ -146,10 +283,13 @@ void Raytracer::renderSection(sf::Vector2f pixTL, sf::Vector2f pixBR)
 			rayDir.normalize();
 			Vec3f pixel = trace(rayOrigin, rayDir, 0);
 
+			// Update pixel array - RGBA
 			pixelArray[index * 4] = (uint8_t)(std::min(1.0f, pixel.x) * 255);
 			pixelArray[(index * 4) + 1] = (uint8_t)(std::min(1.0f, pixel.y) * 255);
 			pixelArray[(index * 4) + 2] = (uint8_t)(std::min(1.0f, pixel.z) * 255);
 			pixelArray[(index * 4) + 3] = 255;
 		}
+
+        renderTexture->update(pixelArray.data());
 	}
 }

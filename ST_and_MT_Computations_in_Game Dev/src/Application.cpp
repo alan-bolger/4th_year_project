@@ -137,7 +137,7 @@ void Application::loadTest(TestID testID)
 		{
 			if (raytracer == nullptr)
 			{
-				raytracer = new Raytracer(640, 480);
+				raytracer = new Raytracer(1280, 720);
 			}
 
 			break;

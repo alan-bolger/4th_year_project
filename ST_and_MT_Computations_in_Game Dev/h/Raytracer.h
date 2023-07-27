@@ -19,8 +19,7 @@
 #include <SFML/Graphics.hpp>
 
 constexpr auto PI = 3.141592653589793;
-
-using Vec3f = Vec3<float>;
+constexpr auto MAX_BOUNCES = 10;
 
 struct Sphere
 {
@@ -79,7 +78,6 @@ public:
 	Raytracer(int w, int h);
 	~Raytracer();
     void handleUI();
-    void render();
 
 private:	
 	int renderW;
@@ -87,12 +85,14 @@ private:
     Vec3f rayOrigin;
     int fov;
     std::unique_ptr<ThreadPool> threadPool;
-    std::unique_ptr<sf::RenderTexture> renderTexture;
+    std::unique_ptr<sf::Texture> renderTexture;
     std::vector<uint8_t> pixelArray;
+    std::vector<Sphere> spheres;
 
+    void render(bool multiThreaded);
     float mix(const float &a, const float &b, const float &mix);
     Vec3f trace(const Vec3f &rayOrigin, const Vec3f &rayDir, const int &depth);
-    void renderSection(sf::Vector2f pixTL, sf::Vector2f pixBR);
+    void renderSection(sf::Vector2i pixTL, sf::Vector2i pixBR);
 };
 
 #endif // !RAYTRACER_H
