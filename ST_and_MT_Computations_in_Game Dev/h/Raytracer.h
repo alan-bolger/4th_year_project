@@ -15,6 +15,7 @@
 #include "imgui-SFML.h"
 #include "ThreadPool.h"
 #include "Vec3.h"
+#include "Timer.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -89,7 +90,7 @@ private:
     std::vector<Sphere> spheres;
     int renderTileW = 64;
     int renderTileH = 64;
-    int maxBounces = 10;
+    int maxBounces = 25;
 
     void render(bool multiThreaded);
     float mix(const float &a, const float &b, const float &mix);

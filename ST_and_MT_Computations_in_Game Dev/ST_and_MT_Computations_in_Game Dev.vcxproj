@@ -22,6 +22,7 @@
     <ClInclude Include="h\Application.h" />
     <ClInclude Include="h\Raytracer.h" />
     <ClInclude Include="h\ThreadPool.h" />
+    <ClInclude Include="h\Timer.h" />
     <ClInclude Include="h\Vec3.h" />
   </ItemGroup>
   <ItemGroup>

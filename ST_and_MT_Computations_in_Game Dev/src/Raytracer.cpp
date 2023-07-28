@@ -140,6 +140,9 @@ void Raytracer::handleUI()
 /// <param name="multiThreaded">False for single-threaded and true for multi-threaded.</param>
 void Raytracer::render(bool multiThreaded)
 {
+    // This is purely to test the Timer class
+    Timer timer("Render() function");
+
     pixelArray.clear();
     pixelArray.resize(renderW * renderH * 4);
 
