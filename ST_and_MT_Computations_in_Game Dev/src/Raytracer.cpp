@@ -43,6 +43,57 @@ void Raytracer::handleUI()
 {
 	if (ImGui::CollapsingHeader("Raytracer"))
 	{
+        // Render output options
+        ImGui::PushItemWidth(0);
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::Text("Render output dimensions");
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::InputInt("Width##01", &renderW);
+        ImGui::InputInt("Height##01", &renderH);
+
+        // Limit max to 4k resolution (3840 x 2160)
+        renderW = std::clamp(renderW, 128, 3840);
+        renderH = std::clamp(renderH, 128, 2160);
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::Separator();
+
+        // Render tile options
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::Text("Tile dimensions (only applies\nto multi-threaded rendering)");
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::InputInt("Width##02", &renderTileW);
+        ImGui::InputInt("Height##02", &renderTileH);
+
+        // Limit max to 256 x 256 (min to 16)
+        renderTileW = std::clamp(renderTileW, 16, 256);
+        renderTileH = std::clamp(renderTileH, 16, 256);
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+        
+        ImGui::Separator();
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::Text("Render Options");
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::InputInt("Max Bounces", &maxBounces);
+
+        // Limit to a maximum of 512 potential bounces
+        maxBounces = std::clamp(maxBounces, 1, 512);
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
 		// Threading options
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -92,21 +143,20 @@ void Raytracer::render(bool multiThreaded)
     pixelArray.clear();
     pixelArray.resize(renderW * renderH * 4);
 
+    renderTexture = std::make_unique<sf::Texture>();
+    renderTexture->create(renderW, renderH);
+
 	if (multiThreaded)
 	{
-		// This renders using multi-threading
-        int numOfSectionsW = renderW / renderTileW;
-        int remainingW = renderW % renderTileW;
-
-        int numOfSectionsH = renderH / renderTileH;
-        int remainingH = renderH % renderTileH;
+        int numOfSectionsW = (renderW / renderTileW) + 1;
+        int numOfSectionsH = (renderH / renderTileH) + 1;
 
 		// Add the render jobs to the thread pool
         for (int y = 0; y < numOfSectionsH; ++y)
         {
             for (int x = 0; x < numOfSectionsW; ++x)
             {
-                // This lambda adds blocks of code to the thread pool
+                // This lambda adds a block of code to the thread pool as a job
                 threadPool->addJob([=]
                 {
                     int startX = x * renderTileW;
@@ -114,30 +164,6 @@ void Raytracer::render(bool multiThreaded)
 
                     int endX = startX + renderTileW;
                     int endY = startY + renderTileH;
-
-                    // This checks if we're on the last X section
-                    if (x == (numOfSectionsW - 1))
-                    {
-                        // If theres a W remainder, it means the final section width
-                        // is less than the renderTileW. endX must be adjusted so
-                        // that it ends on the last pixel instead of going out of bounds
-                        if (remainingW > 0)
-                        {
-                            endX = endX - (renderTileW - remainingW);
-                        }
-                    }
-
-                    // This checks if we're on the last Y section
-                    if (y == (numOfSectionsH - 1))
-                    {
-                        // If theres a H remainder, it means the final section height
-                        // is less than the renderTileH. endX must be adjusted so
-                        // that it ends on the last pixel instead of going out of bounds
-                        if (remainingH > 0)
-                        {
-                            endY = endY - (renderTileH - remainingH);
-                        }
-                    }
 
                     renderSection(sf::Vector2i(startX, startY), sf::Vector2i(endX, endY));
                 });
@@ -231,7 +257,7 @@ Vec3f Raytracer::trace(const Vec3f &rayOrigin, const Vec3f &rayDir, const int &d
         inside = true;
     }
 
-    if ((sphere->transparency > 0 || sphere->reflection > 0) && depth < MAX_BOUNCES)
+    if ((sphere->transparency > 0 || sphere->reflection > 0) && depth < maxBounces)
     {
         float facingRatio = -rayDir.dot(nHit);
 
@@ -318,6 +344,12 @@ void Raytracer::renderSection(sf::Vector2i pixTL, sf::Vector2i pixBR)
 		for (unsigned int x = pixTL.x; x < pixBR.x; ++x)
 		{
 			int index = (y * renderW + x);
+
+            // Out of bounds check
+            if (index < 0 || (index * 4) > (pixelArray.size() - 1))
+            {
+                continue;
+            }
 
 			float xx = (2 * ((x + 0.5) * invWidth) - 1) * angle * aspectRatio;
 			float yy = (1 - 2 * ((y + 0.5) * invHeight)) * angle;
