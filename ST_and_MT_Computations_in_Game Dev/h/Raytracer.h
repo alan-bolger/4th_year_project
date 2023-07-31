@@ -82,15 +82,26 @@ public:
 private:	
 	int renderW;
 	int renderH;
-    Vec3f rayOrigin;
+    Vec3f rayOrigin{ 0.0f, 4.0f, 10.0f };
     int fov = 30;
     std::unique_ptr<ThreadPool> threadPool;
     std::unique_ptr<sf::Texture> renderTexture;
     std::vector<uint8_t> pixelArray;
     std::vector<Sphere> spheres;
-    int renderTileW = 64;
-    int renderTileH = 64;
-    int maxBounces = 25;
+    int renderTileW;
+    int renderTileH;
+    int maxBounces;
+    Vec3f backgroundColour;
+    float sRadius;
+    float sX;
+    float sY;
+    float sZ;
+    Vec3f sColour;
+    float sTransparency;
+    float sReflection;
+    Vec3f sEmissionColour;
+    int activeSphereIndex;
+    bool sphereEditWindowOpen = false;
 
     void render(bool multiThreaded);
     float mix(const float &a, const float &b, const float &mix);

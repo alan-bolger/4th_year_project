@@ -142,6 +142,17 @@ public:
     { 
         return std::sqrt(length2());
     }
+
+    /// <summary>
+    /// Get a pointer to the first element (x).
+    /// This is useful if you need to pass an array of 3
+    /// floats to an ImGui function.
+    /// </summary>
+    /// <returns>A pointer to the first element.</returns>
+    T *get()
+    {
+        return &x;
+    }
 };
 
 using Vec3f = Vec3<float>;

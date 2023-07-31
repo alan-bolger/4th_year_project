@@ -14,18 +14,32 @@ Raytracer::Raytracer(int w, int h) : renderW(w), renderH(h)
 
 	pixelArray.resize(renderW * renderH * 4);
 
-    // Add a few spheres below for testing.....
+    // Set startup defaults
+    renderTileW = 64;
+    renderTileH = 64;
+    maxBounces = 25;
+    backgroundColour = 1.0f;
+    sRadius = 0.5f;
+    sX = 0.0f;
+    sY = 0.0f;
+    sZ = 0.0f;
+    sColour = 1.0f;
+    sTransparency = 0.0f;
+    sReflection = 1.0f;
+    sEmissionColour = 0.0f;
 
     // This sphere acts as the ground
     spheres.push_back(Sphere(Vec3f(0.0, -10000, -5), 10000, Vec3f(0.149, 0.509, 0.192), 1, 0, 0));
 
     // Some spheres
-    spheres.push_back(Sphere(Vec3f(-3.4, 0.4, -12.0), 0.4, Vec3f(0.835, 0.443, 0.125), 0.1, 1, 0));
+    spheres.push_back(Sphere(Vec3f(-3.0, 0.4, -10.0), 0.4, Vec3f(0.835, 0.443, 0.125), 0.1, 1, 0));
     spheres.push_back(Sphere(Vec3f(-2.3, 0.2, -15.0), 0.2, Vec3f(0.713, 0.227, 0.631), 0.2, 1, 0));
-    spheres.push_back(Sphere(Vec3f(0.2, 2.3, -20.0), 2.3, Vec3f(0.721, 0.721, 0.721), 1, 1, 0));
+    spheres.push_back(Sphere(Vec3f(0.2, 2.3, -24.0), 2.3, Vec3f(0.721, 0.721, 0.721), 1, 1, 0));
+    spheres.push_back(Sphere(Vec3f(14.1, 5.9, -53.0), 6.0, Vec3f(0.835, 0.443, 0.125), 0.1, 0.7, 0));
+    spheres.push_back(Sphere(Vec3f(-59.1, 21.8, -204.0), 24.0, Vec3f(0.443, 0.835, 0.125), 0.1, 0.7, 0));
 
-    // This is a light
-    spheres.push_back(Sphere(Vec3f(0, 5, 0), 3, Vec3f(0, 0, 0), 0, 0, Vec3f(1, 1, 1)));
+    // Render demo image
+    render(true);
 }
 
 /// <summary>
@@ -41,88 +55,210 @@ Raytracer::~Raytracer()
 /// </summary>
 void Raytracer::handleUI()
 {
-	if (ImGui::CollapsingHeader("Raytracer"))
-	{
-        // Render output options
-        ImGui::PushItemWidth(0);
+    ImGui::PushItemWidth(0);
 
+    if (ImGui::CollapsingHeader("Output Options"))
+    {
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-        ImGui::Text("Render output dimensions");
+        ImGui::SeparatorText("Render Dimensions");
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
         ImGui::InputInt("Width##01", &renderW);
-        ImGui::InputInt("Height##01", &renderH);
+        ImGui::InputInt("Height##02", &renderH);
 
         // Limit max to 4k resolution (3840 x 2160)
         renderW = std::clamp(renderW, 128, 3840);
         renderH = std::clamp(renderH, 128, 2160);
 
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::Separator();
-
         // Render tile options
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-        ImGui::Text("Tile dimensions (only applies\nto multi-threaded rendering)");
+        ImGui::SeparatorText("Tile Dimensions");
+        ImGui::TextWrapped("This only applies to multi-threaded rendering");
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-        ImGui::InputInt("Width##02", &renderTileW);
-        ImGui::InputInt("Height##02", &renderTileH);
+        ImGui::InputInt("Width##03", &renderTileW);
+        ImGui::InputInt("Height##04", &renderTileH);
 
         // Limit max to 256 x 256 (min to 16)
         renderTileW = std::clamp(renderTileW, 16, 256);
         renderTileH = std::clamp(renderTileH, 16, 256);
 
+        ImGui::Dummy(ImVec2(0.0f, 8.0f)); 
+    }
+
+    if (ImGui::CollapsingHeader("Editing Options"))
+    {
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
-        
+
+        ImGui::ColorEdit3("Background Colour", backgroundColour.get());
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::SeparatorText("Add Sphere");
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::InputFloat("Radius", &sRadius);
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::InputFloat("X", &sX);
+        ImGui::InputFloat("Y", &sY);
+        ImGui::InputFloat("Z", &sZ);
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::ColorEdit3("Colour", sColour.get());
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::InputFloat("Reflection", &sReflection);
+        ImGui::InputFloat("Transparency", &sTransparency);
+
+        // Clamp values between 0.0 and 1.0
+        sReflection = std::clamp(sReflection, 0.0f, 1.0f);
+        sTransparency = std::clamp(sTransparency, 0.0f, 1.0f);
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::ColorEdit3("Emission Colour", sEmissionColour.get());
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        if (ImGui::Button("ADD", ImVec2(60, 24)))
+        {
+            spheres.push_back(Sphere(Vec3f(sX, sY, sZ), sRadius, sColour, sReflection, sTransparency, sEmissionColour));
+        }
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::SeparatorText("Edit Sphere");
+        ImGui::TextWrapped("Select the sphere to edit, then click the 'OPEN EDITOR' button to display the sphere editor if it's not already visible");
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        // Display all spheres in the scene in a selectable list
+        for (int i = 0; i < spheres.size(); i++)
+        {
+            std::string text = "Sphere " + std::to_string(i);
+
+            ImGui::Separator();
+
+            if (ImGui::Selectable(text.c_str(), i == activeSphereIndex))
+            {
+                // If the user clicks on the sphere, set it as the active sphere
+                activeSphereIndex = i;
+            }
+        }
+
         ImGui::Separator();
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-        ImGui::Text("Render Options");
+        if (ImGui::Button("OPEN EDITOR", ImVec2(110, 24)))
+        {
+            sphereEditWindowOpen = true;
+        }
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+    }
+
+    if (ImGui::CollapsingHeader("Render"))
+    {
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::TextWrapped("Increasing max bounces will increase rendering time, but will produce higher quality renders");
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
         ImGui::InputInt("Max Bounces", &maxBounces);
 
-        // Limit to a maximum of 512 potential bounces
-        maxBounces = std::clamp(maxBounces, 1, 512);
+        // Limit to a maximum of 128 potential bounces
+        maxBounces = std::clamp(maxBounces, 1, 128);
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		// Threading options
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+        ImGui::SeparatorText("Thread Usage");
 
-		ImGui::Text("Select single-threaded\nor multi-threaded\nrendering");
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+        static int sel = 0;
+        ImGui::RadioButton("Single-threaded", &sel, 0);
+        ImGui::RadioButton("Multi-threaded", &sel, 1);
 
-		ImGui::PushItemWidth(-1);
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		static int sel = 0;
-		ImGui::RadioButton("Single-threaded", &sel, 0);
-		ImGui::RadioButton("Multi-threaded", &sel, 1);
+        ImGui::Separator();
 
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		if (ImGui::Button("RENDER", ImVec2(60, 24)))
-		{
-			if (sel == 0) 
+        ImGui::TextWrapped("Any changes made will only be visible once the scene has been rendered");
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        if (ImGui::Button("RENDER", ImVec2(60, 24)))
+        {
+            if (sel == 0)
             {
                 render(false);
             }
-			else 
-            { 
+            else
+            {
                 render(true);
             }
-		}
+        }
 
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-	}
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+    }
+
+    // Render sphere editor window if it's open
+    if (sphereEditWindowOpen)
+    {
+        ImGui::Begin("Edit Sphere", &sphereEditWindowOpen);
+
+        // Options for adding a sphere to the scene
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        std::string text = "Sphere " + std::to_string(activeSphereIndex);
+
+        ImGui::SeparatorText(text.c_str());
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::InputFloat("Radius", &spheres[activeSphereIndex].radius);
+        spheres[activeSphereIndex].radius2 = spheres[activeSphereIndex].radius * spheres[activeSphereIndex].radius;
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::InputFloat("X", &spheres[activeSphereIndex].center.x);
+        ImGui::InputFloat("Y", &spheres[activeSphereIndex].center.y);
+        ImGui::InputFloat("Z", &spheres[activeSphereIndex].center.z);
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::ColorEdit3("Colour", spheres[activeSphereIndex].surfaceColour.get());
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::InputFloat("Reflection", &spheres[activeSphereIndex].reflection);
+        ImGui::InputFloat("Transparency", &spheres[activeSphereIndex].transparency);
+
+        // Clamp values between 0.0 and 1.0
+        sReflection = std::clamp(spheres[activeSphereIndex].reflection, 0.0f, 1.0f);
+        sTransparency = std::clamp(spheres[activeSphereIndex].transparency, 0.0f, 1.0f);
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::ColorEdit3("Emission Colour", spheres[activeSphereIndex].emissionColour.get());
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::End();
+    }
 
 	// Render output window
 	ImGui::Begin("Render Result");
@@ -140,9 +276,6 @@ void Raytracer::handleUI()
 /// <param name="multiThreaded">False for single-threaded and true for multi-threaded.</param>
 void Raytracer::render(bool multiThreaded)
 {
-    // This is purely to test the Timer class
-    Timer timer("Render() function");
-
     pixelArray.clear();
     pixelArray.resize(renderW * renderH * 4);
 
@@ -238,7 +371,7 @@ Vec3f Raytracer::trace(const Vec3f &rayOrigin, const Vec3f &rayDir, const int &d
     // If there's no intersection then return black or background color
     if (!sphere)
     {
-        return Vec3f(1, 1, 1);
+        return backgroundColour;
     }
 
     Vec3f surfaceColour = 0; // The colour of the surface at the ray intersection point
