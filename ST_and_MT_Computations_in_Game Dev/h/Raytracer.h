@@ -82,7 +82,7 @@ public:
 private:	
 	int renderW;
 	int renderH;
-    Vec3f rayOrigin{ 0.0f, 4.0f, 10.0f };
+    Vec3f rayOrigin{ 0.0f, 0.0f, 10.0f };
     int fov = 30;
     std::unique_ptr<ThreadPool> threadPool;
     std::unique_ptr<sf::Texture> renderTexture;
@@ -100,6 +100,7 @@ private:
     float sTransparency;
     float sReflection;
     Vec3f sEmissionColour;
+    bool multiThreaded = true;
     int activeSphereIndex;
     bool sphereEditWindowOpen = false;
 

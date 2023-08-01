@@ -17,7 +17,7 @@ Raytracer::Raytracer(int w, int h) : renderW(w), renderH(h)
     // Set startup defaults
     renderTileW = 64;
     renderTileH = 64;
-    maxBounces = 25;
+    maxBounces = 5;
     backgroundColour = 1.0f;
     sRadius = 0.5f;
     sX = 0.0f;
@@ -25,21 +25,21 @@ Raytracer::Raytracer(int w, int h) : renderW(w), renderH(h)
     sZ = 0.0f;
     sColour = 1.0f;
     sTransparency = 0.0f;
-    sReflection = 1.0f;
+    sReflection = 0.0f;
     sEmissionColour = 0.0f;
 
     // This sphere acts as the ground
     spheres.push_back(Sphere(Vec3f(0.0, -10000, -5), 10000, Vec3f(0.149, 0.509, 0.192), 1, 0, 0));
 
-    // Some spheres
+    // Some other spheres
     spheres.push_back(Sphere(Vec3f(-3.0, 0.4, -10.0), 0.4, Vec3f(0.835, 0.443, 0.125), 0.1, 1, 0));
     spheres.push_back(Sphere(Vec3f(-2.3, 0.2, -15.0), 0.2, Vec3f(0.713, 0.227, 0.631), 0.2, 1, 0));
     spheres.push_back(Sphere(Vec3f(0.2, 2.3, -24.0), 2.3, Vec3f(0.721, 0.721, 0.721), 1, 1, 0));
-    spheres.push_back(Sphere(Vec3f(14.1, 5.9, -53.0), 6.0, Vec3f(0.835, 0.443, 0.125), 0.1, 0.7, 0));
-    spheres.push_back(Sphere(Vec3f(-59.1, 21.8, -204.0), 24.0, Vec3f(0.443, 0.835, 0.125), 0.1, 0.7, 0));
+    spheres.push_back(Sphere(Vec3f(14.1, 6.0, -53.0), 6.0, Vec3f(0.835, 0.443, 0.125), 0.1, 0.7, 0));
+    spheres.push_back(Sphere(Vec3f(-59.1, 24.0, -204.0), 24.0, Vec3f(0.443, 0.835, 0.125), 0.1, 0.7, 0));
 
     // Render demo image
-    render(true);
+    render(multiThreaded);
 }
 
 /// <summary>
@@ -57,7 +57,7 @@ void Raytracer::handleUI()
 {
     ImGui::PushItemWidth(0);
 
-    if (ImGui::CollapsingHeader("Output Options"))
+    if (ImGui::CollapsingHeader("Output"))
     {
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -90,49 +90,11 @@ void Raytracer::handleUI()
         ImGui::Dummy(ImVec2(0.0f, 8.0f)); 
     }
 
-    if (ImGui::CollapsingHeader("Editing Options"))
+    if (ImGui::CollapsingHeader("Editing"))
     {
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
         ImGui::ColorEdit3("Background Colour", backgroundColour.get());
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::SeparatorText("Add Sphere");
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::InputFloat("Radius", &sRadius);
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::InputFloat("X", &sX);
-        ImGui::InputFloat("Y", &sY);
-        ImGui::InputFloat("Z", &sZ);
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::ColorEdit3("Colour", sColour.get());
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::InputFloat("Reflection", &sReflection);
-        ImGui::InputFloat("Transparency", &sTransparency);
-
-        // Clamp values between 0.0 and 1.0
-        sReflection = std::clamp(sReflection, 0.0f, 1.0f);
-        sTransparency = std::clamp(sTransparency, 0.0f, 1.0f);
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::ColorEdit3("Emission Colour", sEmissionColour.get());
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        if (ImGui::Button("ADD", ImVec2(60, 24)))
-        {
-            spheres.push_back(Sphere(Vec3f(sX, sY, sZ), sRadius, sColour, sReflection, sTransparency, sEmissionColour));
-        }
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -158,6 +120,32 @@ void Raytracer::handleUI()
         ImGui::Separator();
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        if (ImGui::Button("ADD SPHERE", ImVec2(110, 24)))
+        {
+            spheres.push_back(Sphere(Vec3f(0, 0, 0), 3, Vec3f(0.5, 0.5, 0.5), 0, 0, 0));
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("DELETE SPHERE", ImVec2(110, 24)))
+        {
+            if (spheres.size() > 0)
+            {
+                if (activeSphereIndex < spheres.size())
+                {
+                    auto itr = spheres.begin() + activeSphereIndex;
+                    spheres.erase(itr);
+                }
+
+                if (spheres.empty())
+                {
+                    activeSphereIndex = -1;
+                }
+            }
+        }
+
+        ImGui::SameLine();
 
         if (ImGui::Button("OPEN EDITOR", ImVec2(110, 24)))
         {
@@ -186,9 +174,10 @@ void Raytracer::handleUI()
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-        static int sel = 0;
+        static int sel = 1;
         ImGui::RadioButton("Single-threaded", &sel, 0);
         ImGui::RadioButton("Multi-threaded", &sel, 1);
+        sel == 0 ? multiThreaded = false : multiThreaded = true;
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -202,14 +191,7 @@ void Raytracer::handleUI()
 
         if (ImGui::Button("RENDER", ImVec2(60, 24)))
         {
-            if (sel == 0)
-            {
-                render(false);
-            }
-            else
-            {
-                render(true);
-            }
+            render(multiThreaded);
         }
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
@@ -229,14 +211,14 @@ void Raytracer::handleUI()
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-        ImGui::InputFloat("Radius", &spheres[activeSphereIndex].radius);
+        ImGui::DragFloat("Radius", &spheres[activeSphereIndex].radius);
         spheres[activeSphereIndex].radius2 = spheres[activeSphereIndex].radius * spheres[activeSphereIndex].radius;
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-        ImGui::InputFloat("X", &spheres[activeSphereIndex].center.x);
-        ImGui::InputFloat("Y", &spheres[activeSphereIndex].center.y);
-        ImGui::InputFloat("Z", &spheres[activeSphereIndex].center.z);
+        ImGui::DragFloat("X", &spheres[activeSphereIndex].center.x);
+        ImGui::DragFloat("Y", &spheres[activeSphereIndex].center.y);
+        ImGui::DragFloat("Z", &spheres[activeSphereIndex].center.z);
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -244,12 +226,12 @@ void Raytracer::handleUI()
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-        ImGui::InputFloat("Reflection", &spheres[activeSphereIndex].reflection);
-        ImGui::InputFloat("Transparency", &spheres[activeSphereIndex].transparency);
+        ImGui::DragFloat("Reflection", &spheres[activeSphereIndex].reflection, 0.01f, 0.0f, 1.0f);
+        ImGui::DragFloat("Transparency", &spheres[activeSphereIndex].transparency, 0.01f, 0.0f, 1.0f);
 
         // Clamp values between 0.0 and 1.0
-        sReflection = std::clamp(spheres[activeSphereIndex].reflection, 0.0f, 1.0f);
-        sTransparency = std::clamp(spheres[activeSphereIndex].transparency, 0.0f, 1.0f);
+        spheres[activeSphereIndex].reflection = std::clamp(spheres[activeSphereIndex].reflection, 0.0f, 1.0f);
+        spheres[activeSphereIndex].transparency = std::clamp(spheres[activeSphereIndex].transparency, 0.0f, 1.0f);
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -257,11 +239,18 @@ void Raytracer::handleUI()
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
+        if (ImGui::Button("RENDER", ImVec2(60, 24)))
+        {
+            render(multiThreaded);
+        }
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
         ImGui::End();
     }
 
 	// Render output window
-	ImGui::Begin("Render Result");
+	ImGui::Begin("Render");
 
     renderTexture->update(pixelArray.data());
 	ImGui::Image(*renderTexture);

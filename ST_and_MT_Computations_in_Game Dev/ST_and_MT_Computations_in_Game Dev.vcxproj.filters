@@ -27,11 +27,11 @@
     <ClInclude Include="h\Vec3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="h\Raytracer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="h\Timer.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="h\Raytracer.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
