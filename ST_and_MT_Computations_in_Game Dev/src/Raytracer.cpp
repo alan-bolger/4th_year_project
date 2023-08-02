@@ -92,6 +92,14 @@ void Raytracer::handleUI()
 
     if (ImGui::CollapsingHeader("Editing"))
     {
+        ImGui::SeparatorText("Camera");
+
+        ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+        ImGui::DragFloat("X", &rayOrigin.x);
+        ImGui::DragFloat("Y", &rayOrigin.y);
+        ImGui::DragFloat("Z", &rayOrigin.z);
+
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
         ImGui::ColorEdit3("Background Colour", backgroundColour.get());
