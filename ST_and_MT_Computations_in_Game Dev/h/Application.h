@@ -1,17 +1,26 @@
+// --------------------------------------------
+// | Application.h                            |
+// | Application.cpp						  |
+// | -----------------------------------------|
+// | The Application class creates the main	  |
+// | render window, handles processing		  | 
+// | events, and updates and draws whichever  |
+// | test is currently active. All of the	  |
+// | ImGui menus are handled here also.		  |
+// --------------------------------------------
+
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
 #include "imgui.h"
 #include "imgui-SFML.h"
-#include "ThreadPool.h"
+#include "Raytracer.h"
 
 #include <SFML/Graphics.hpp>
-#include <numeric>
 
-enum class Test
+enum class TestID
 {
-	SINGLE_THREADED,
-	MULTI_THREADED
+	T01_RAYTRACER = 0
 };
 
 class Application
@@ -26,13 +35,13 @@ private:
 	static const unsigned int SCREEN_HEIGHT = 720u;
 	sf::RenderWindow window;
 	bool exitApp;
-	std::unique_ptr<ThreadPool> threadPool;
+	Raytracer *raytracer = nullptr;
 
 	void processEvents();
 	void update(const sf::Time &dt);
+	void handleUI();
+	void loadTest(TestID testID);
 	void draw();
-	void executeTest(Test type);
-	void job();
 };
 
 #endif // !APPLICATION_H

@@ -1,3 +1,14 @@
+// --------------------------------------------
+// | ThreadPool.h                             |
+// | ThreadPool.cpp							  |
+// | -----------------------------------------|
+// | This class creates a threadpool. By	  |
+// | default, it uses the maximum amount	  |
+// | of threads available. Use the			  |
+// | constructor parameter to set the number  |
+// | of threads manually.					  |
+// --------------------------------------------
+
 #ifndef THREADPOOL_H
 #define THREADPOOL_H
 
@@ -14,7 +25,7 @@ class ThreadPool
 public:
 	using Job = std::function<void()>;
 
-	explicit ThreadPool(std::size_t threadAmount);
+	explicit ThreadPool(std::size_t threadAmount = std::thread::hardware_concurrency());
 	~ThreadPool();
 	
 	template<class T>

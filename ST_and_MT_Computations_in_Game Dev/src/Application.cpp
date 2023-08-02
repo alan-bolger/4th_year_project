@@ -3,13 +3,16 @@
 /// <summary>
 /// Application constructor.
 /// </summary>
-Application::Application() : window{ sf::VideoMode{ SCREEN_WIDTH, SCREEN_HEIGHT, 32 }, "ST vs MT Perf Tests", sf::Style::Default }
+Application::Application() : window{ sf::VideoMode{ SCREEN_WIDTH, SCREEN_HEIGHT, 32 }, "ST vs MT Test Suite", sf::Style::Default }
 {
 	exitApp = false;
 
-	threadPool = std::make_unique<ThreadPool>(std::thread::hardware_concurrency());
-
+	// Initialise ImGui SFML
 	ImGui::SFML::Init(window);
+
+	// Enable docking
+	ImGuiIO &io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 }
 
 /// <summary>
@@ -78,21 +81,68 @@ void Application::update(const sf::Time &dt)
 {	
 	ImGui::SFML::Update(window, dt);
 
-	// Test ImGui window
-	ImGui::Begin("Project");
-	ImGui::Text("Test Threadpool");
+	// Cover entire window with dockspace
+	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
-	if (ImGui::Button("Single Threaded", ImVec2(120, 24)))
+	// Update and draw UI
+	handleUI();
+}
+
+/// <summary>
+/// Update and draw all ImGui menus.
+/// </summary>
+void Application::handleUI()
+{
+	// Select and load a test
+	ImGui::Begin("Test Inspector");
+
+	if (ImGui::CollapsingHeader("Load Test"))
 	{
-		executeTest(Test::SINGLE_THREADED);
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::Text("Select test");
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::PushItemWidth(-1);
+
+		const char *items[] = { "T01 - Raytracing", "T02 - TBC", "T03 - TBC", "T04 - TBC", "T05 - TBC" };
+		static int item_current = 0;
+		ImGui::ListBox("ListBox", &item_current, items, IM_ARRAYSIZE(items), 5);
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		if (ImGui::Button("LOAD TEST", ImVec2(100, 24)))
+		{
+			loadTest(static_cast<TestID>(item_current));
+		}
 	}
 
-	if (ImGui::Button("Multi Threaded", ImVec2(120, 24)))
-	{
-		executeTest(Test::MULTI_THREADED);
-	}
+	ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+	if (raytracer != nullptr) {	raytracer->handleUI(); }
 
 	ImGui::End();
+}
+
+/// <summary>
+/// Loads a test.
+/// </summary>
+/// <param name="testID">The test ID.</param>
+void Application::loadTest(TestID testID)
+{
+	switch (testID)
+	{
+		case TestID::T01_RAYTRACER:
+		{
+			if (raytracer == nullptr)
+			{
+				raytracer = new Raytracer(1280, 720);
+			}
+
+			break;
+		}
+	}
 }
 
 /// <summary>
@@ -105,42 +155,4 @@ void Application::draw()
 	ImGui::SFML::Render(window);
 
 	window.display();
-}
-
-/// <summary>
-/// Execute the threadpool test.
-/// </summary>
-void Application::executeTest(Test test)
-{
-	switch (test)
-	{
-	case Test::SINGLE_THREADED:
-
-		// Execute jobs one after another
-		for (int i = 0; i < 1000; i++)
-		{
-			job();
-		}
-
-		break;
-
-	case Test::MULTI_THREADED:
-
-		// Add jobs to the threadpool
-		for (int i = 0; i < 1000; i++)
-		{
-			threadPool->addJob([this] { job(); });
-		}
-
-		break;
-	}
-}
-
-/// <summary>
-/// This function is used to test that the threadpool is working.
-/// </summary>
-void Application::job()
-{	
-	std::cout << "Thread " << std::this_thread::get_id() << " finished" << std::endl;
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }
