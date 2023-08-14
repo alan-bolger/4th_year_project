@@ -1,11 +1,11 @@
 // --------------------------------------------
-// | Raytracer.h							  |
-// | Raytracer.cpp							  |
-// | -----------------------------------------|
-// | This is a fairly simple raytracer that	  |
-// | can render spheres.	                  |
-// | It can operate on a single thread		  |
-// | or on multiple threads.				  |
+// Raytracer.h
+// Raytracer.cpp
+// --------------------------------------------
+// This is a fairly simple raytracer that
+// can render spheres.
+// It can operate on a single thread
+// or on multiple threads.
 // --------------------------------------------
 
 #ifndef RAYTRACER_H

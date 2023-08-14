@@ -31,7 +31,10 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="h\Raytracer.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="h\AStar.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -60,6 +63,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Raytracer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AStar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

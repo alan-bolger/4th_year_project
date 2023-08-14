@@ -1,12 +1,12 @@
 // --------------------------------------------
-// | Application.h                            |
-// | Application.cpp						  |
-// | -----------------------------------------|
-// | The Application class creates the main	  |
-// | render window, handles processing		  | 
-// | events, and updates and draws whichever  |
-// | test is currently active. All of the	  |
-// | ImGui menus are handled here also.		  |
+// Application.h
+// Application.cpp
+// --------------------------------------------
+// The Application class creates the main
+// render window, handles processing
+// events, and updates and draws whichever
+// test is currently active. All of the
+// ImGui menus are handled here also.
 // --------------------------------------------
 
 #ifndef APPLICATION_H
@@ -15,12 +15,14 @@
 #include "imgui.h"
 #include "imgui-SFML.h"
 #include "Raytracer.h"
+#include "AStar.h"
 
 #include <SFML/Graphics.hpp>
 
 enum class TestID
 {
-	T01_RAYTRACER = 0
+	T01_RAYTRACER = 0,
+	T02_PATHFINDING
 };
 
 class Application
