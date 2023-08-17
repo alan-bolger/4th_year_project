@@ -3,8 +3,10 @@
 /// <summary>
 /// AStar constructor.
 /// </summary>
-/// <param name="data">An array of integers representing the map.</param>
-AStar::AStar(const std::vector<int> &mapData)
+/// <param name="mapData">The map to perform pathfinding on.</param>
+/// <param name="mapWidth">The map's width.</param>
+/// <param name="mapHeight">The map's height.</param>
+AStar::AStar(const std::vector<int> &mapData, int mapWidth, int mapHeight) : mapWidth(mapWidth), mapHeight(mapHeight)
 {
 	initialise(mapData);
 }
@@ -14,7 +16,34 @@ AStar::AStar(const std::vector<int> &mapData)
 /// </summary>
 AStar::~AStar()
 {
+	delete[] nodes;
+}
 
+/// <summary>
+/// Get a pointer to the nodes.
+/// </summary>
+/// <returns>A pointer to the nodes array.</returns>
+Node *AStar::getNodes()
+{
+	return nodes;
+}
+
+/// <summary>
+/// Get the start node.
+/// </summary>
+/// <returns>A pointer to the start node.</returns>
+Node *AStar::getNodeStart()
+{
+	return nodeStart;
+}
+
+/// <summary>
+/// Get the end node.
+/// </summary>
+/// <returns>A pointer to the end node.</returns>
+Node *AStar::getNodeEnd()
+{
+	return nodeEnd;
 }
 
 /// <summary>
@@ -22,8 +51,7 @@ AStar::~AStar()
 /// </summary>
 /// <param name="start">The starting node.</param>
 /// <param name="end">The destination node.</param>
-/// <returns>A list containing the best possible path.</returns>
-std::list<sf::Vector2f> AStar::run(sf::Vector2f start, sf::Vector2f end)
+void AStar::run(sf::Vector2f start, sf::Vector2f end)
 {
 	// Set start and end node
 	nodeStart = &nodes[(int)start.y * mapWidth + (int)start.x];
@@ -119,14 +147,12 @@ std::list<sf::Vector2f> AStar::run(sf::Vector2f start, sf::Vector2f end)
 			}
 		}
 	}
-
-	return path;
 }
 
 /// <summary>
 /// Initialise A*
 /// </summary>
-/// <param name="mapData">An array of integers representing the map.</param>
+/// <param name="mapData">The map to perform pathfinding on.</param>
 void AStar::initialise(const std::vector<int> &mapData)
 {
 	// Create nodes
@@ -141,11 +167,6 @@ void AStar::initialise(const std::vector<int> &mapData)
 			nodes[y * mapWidth + x].obstacle = false;
 			nodes[y * mapWidth + x].parent = nullptr;
 			nodes[y * mapWidth + x].visited = false;
-
-			if (mapData[y * mapWidth + x] != 0)
-			{
-				nodes[y * mapWidth + x].obstacle = true;
-			}
 		}
 	}
 
@@ -176,29 +197,31 @@ void AStar::initialise(const std::vector<int> &mapData)
 			}
 
 			// These are diagonal connections
-			if (y > 0 && x > 0)
-			{
-				nodes[y * mapWidth + x].neighbours.push_back(&nodes[(y - 1) * mapWidth + (x - 1)]);
-			}
-
-			if (y < mapHeight - 1 && x > 0)
-			{
-				nodes[y * mapWidth + x].neighbours.push_back(&nodes[(y + 1) * mapWidth + (x - 1)]);
-			}
-
-			if (y > 0 && x < mapWidth - 1)
-			{
-				nodes[y * mapWidth + x].neighbours.push_back(&nodes[(y - 1) * mapWidth + (x + 1)]);
-			}
-
-			if (y < mapHeight - 1 && x < mapWidth - 1)
-			{
-				nodes[y * mapWidth + x].neighbours.push_back(&nodes[(y + 1) * mapWidth + (x + 1)]);
-			}
+			// I probably won't use these but I'll comment them out and leave them here for now
+			
+			//	if (y > 0 && x > 0)
+			//	{
+			//		nodes[y * mapWidth + x].neighbours.push_back(&nodes[(y - 1) * mapWidth + (x - 1)]);
+			//	}
+			//	  
+			//	if (y < mapHeight - 1 && x > 0)
+			//	{
+			//		nodes[y * mapWidth + x].neighbours.push_back(&nodes[(y + 1) * mapWidth + (x - 1)]);
+			//	}
+			//	  
+			//	if (y > 0 && x < mapWidth - 1)
+			//	{
+			//		nodes[y * mapWidth + x].neighbours.push_back(&nodes[(y - 1) * mapWidth + (x + 1)]);
+			//	}
+			//	  
+			//	if (y < mapHeight - 1 && x < mapWidth - 1)
+			//	{
+			//		nodes[y * mapWidth + x].neighbours.push_back(&nodes[(y + 1) * mapWidth + (x + 1)]);
+			//	}
 		}
 	}
 
 	// Place start and end nodes to avoid null pointers
-	nodeStart = &nodes[2 * mapWidth + 2];
-	nodeEnd = &nodes[3 * mapWidth + 3];
+	//nodeStart = &nodes[3 * mapWidth + 2];
+	//nodeEnd = &nodes[28 * mapWidth + 26];
 }

@@ -92,14 +92,6 @@ private:
     int renderTileH;
     int maxBounces;
     Vec3f backgroundColour;
-    float sRadius;
-    float sX;
-    float sY;
-    float sZ;
-    Vec3f sColour;
-    float sTransparency;
-    float sReflection;
-    Vec3f sEmissionColour;
     bool multiThreaded = true;
     int activeSphereIndex;
     bool sphereEditWindowOpen = false;

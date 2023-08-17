@@ -1,8 +1,8 @@
 // --------------------------------------------
 // Vec3.h
 // --------------------------------------------
-// Vec3 is a very small library for simple
-// vector maths.
+// Vec3 is a very small header-only library
+// for vector maths.
 // --------------------------------------------
 
 #ifndef VEC3_H

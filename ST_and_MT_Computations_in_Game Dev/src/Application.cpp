@@ -106,7 +106,7 @@ void Application::handleUI()
 
 		ImGui::PushItemWidth(-1);
 
-		const char *items[] = { "T01 - Raytracing", "T02 - TBC", "T03 - TBC", "T04 - TBC", "T05 - TBC" };
+		const char *items[] = { "T01 - Raytracing", "T02 - Pathfinding", "T03 - TBC", "T04 - TBC", "T05 - TBC" };
 		static int item_current = 0;
 		ImGui::ListBox("ListBox", &item_current, items, IM_ARRAYSIZE(items), 5);
 
@@ -121,6 +121,7 @@ void Application::handleUI()
 	ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
 	if (raytracer != nullptr) {	raytracer->handleUI(); }
+	if (pathfinding != nullptr) { pathfinding->handleUI(); }
 
 	ImGui::End();
 }
@@ -142,6 +143,16 @@ void Application::loadTest(TestID testID)
 
 			break;
 		}
+
+		case TestID::T02_PATHFINDING:
+		{
+			if (pathfinding == nullptr)
+			{
+				pathfinding = new Pathfinding();
+			}
+
+			break;
+		}
 	}
 }
 
@@ -153,6 +164,8 @@ void Application::draw()
 	window.clear(sf::Color::Black);
 
 	ImGui::SFML::Render(window);
+
+	if (pathfinding != nullptr) { pathfinding->render(); }
 
 	window.display();
 }
