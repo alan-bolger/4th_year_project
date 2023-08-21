@@ -11,7 +11,7 @@ public:
 	~TileMap();
 	std::vector<int> *getTileArray();
 	void loadTileMap(const std::string &fileName, sf::Texture *tileSet, const unsigned int &tileW, const unsigned int &tileH, const unsigned int &mapW, const unsigned int &mapH);
-	void draw(sf::RenderWindow &window, const uint8_t &alpha = 255u);
+	void draw(sf::RenderTarget &target, const uint8_t &alpha = 255u);
 
 private:
 	sf::VertexArray vertices;

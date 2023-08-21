@@ -32,11 +32,12 @@ public:
 private:
 	static const unsigned int SCREEN_WIDTH = 1280u;
 	static const unsigned int SCREEN_HEIGHT = 720u;
-	sf::RenderWindow window;
 	std::unique_ptr<AStar> aStar;
 	std::unique_ptr<TileMap> layer_0;
 	std::unique_ptr<TileMap> layer_1;
 	std::unique_ptr<sf::Texture> tileSet;
+	sf::RenderTexture tileMap_RT;
+	sf::RenderTexture debugMap_RT;
 	int mapWidth = 256;
 	int mapHeight = 256;
 	int tileWidth = 16;
@@ -51,7 +52,6 @@ private:
 	Vec3f botColour{ 1, 0, 0 };
 	std::vector<int> mapData;
 	sf::View windowView;
-	sf::RenderTexture debugMapRT;
 };
 
 #endif // !PATHFINDING_H

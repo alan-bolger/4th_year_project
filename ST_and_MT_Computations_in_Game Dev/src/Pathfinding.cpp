@@ -3,7 +3,7 @@
 /// <summary>
 /// Pathfinding constructor.
 /// </summary>
-Pathfinding::Pathfinding() : window{ sf::VideoMode{ SCREEN_WIDTH, SCREEN_HEIGHT, 32 }, "Pathfinding", sf::Style::Default }
+Pathfinding::Pathfinding()
 {
  	// Configure tile map
 	tileSet = std::make_unique<sf::Texture>();
@@ -18,8 +18,10 @@ Pathfinding::Pathfinding() : window{ sf::VideoMode{ SCREEN_WIDTH, SCREEN_HEIGHT,
 	aStar = std::make_unique<AStar>(*layer_1->getTileArray(), mapWidth, mapHeight);
 
 	windowView.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-	windowView.zoom(0.5f);
-	window.setView(windowView);
+	//windowView.zoom(0.5f);
+
+	tileMap_RT.create(tileWidth * mapWidth, tileHeight * mapHeight);
+	debugMap_RT.create(tileWidth * mapWidth, tileHeight * mapHeight);
 
 	// Quick path test
 	aStar->run({ 3, 11 }, { 18, 21 });
@@ -64,7 +66,20 @@ void Pathfinding::handleUI()
         ImGui::ColorEdit3("Bots", botColour.get());
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::Checkbox("Show Tile Map", &showTileMap);
+		ImGui::Checkbox("Show Debug Map", &showDebugMap);
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
     }
+
+	// Render output window
+	ImGui::Begin("Render");
+
+	ImGui::Image(tileMap_RT);
+	ImGui::Image(debugMap_RT);
+
+	ImGui::End();
 
 	// Controls for moving map
 	float jumpRange = 5.0f;
@@ -95,16 +110,18 @@ void Pathfinding::handleUI()
 /// </summary>
 void Pathfinding::render()
 {
-	// Clear render texture
-	window.clear(sf::Color(0, 0, 0, 0));
+	// Clear render textures
+	tileMap_RT.clear(sf::Color(0, 0, 0, 0));
+	debugMap_RT.clear(sf::Color(0, 0, 0, 0));
 
-	window.setView(windowView);
+	tileMap_RT.setView(windowView);
+	debugMap_RT.setView(windowView);
 
 	if (showTileMap)
 	{
 		// Draw map
-		layer_0->draw(window);
-		layer_1->draw(window);
+		layer_0->draw(tileMap_RT);
+		layer_1->draw(tileMap_RT);
 	}
 
 	if (showDebugMap)
@@ -122,7 +139,6 @@ void Pathfinding::render()
 				{
 					sf::Vertex connection[] =
 					{
-						//(x * tileWidth) + (tileWidth / 4)
 						sf::Vertex(sf::Vector2f(x * tileWidth + (tileWidth / 2), y * tileHeight + (tileHeight / 2))),
 						sf::Vertex(sf::Vector2f(n->x * tileWidth + (tileWidth / 2), n->y * tileHeight + (tileHeight / 2)))
 					};
@@ -130,7 +146,7 @@ void Pathfinding::render()
 					connection[0].color = sf::Color(connectionColour.x * 255, connectionColour.y * 255, connectionColour.z * 255);
 					connection[1].color = sf::Color(connectionColour.x * 255, connectionColour.y * 255, connectionColour.z * 255);
 
-					window.draw(connection, 2, sf::Lines);
+					debugMap_RT.draw(connection, 2, sf::Lines);
 				}
 			}
 		}
@@ -152,7 +168,7 @@ void Pathfinding::render()
 				connection[0].color = sf::Color(pathColour.x * 255, pathColour.y * 255, pathColour.z * 255);
 				connection[1].color = sf::Color(pathColour.x * 255, pathColour.y * 255, pathColour.z * 255);
 
-				window.draw(connection, 2, sf::Lines);
+				debugMap_RT.draw(connection, 2, sf::Lines);
 
 				// Set next node to this node's parent
 				p = p->parent;
@@ -187,10 +203,10 @@ void Pathfinding::render()
 				}
 
 				nodeSquare.setPosition((x * tileWidth) + (tileWidth / 4), (y * tileHeight) + (tileWidth / 4));
-				window.draw(nodeSquare);
+				debugMap_RT.draw(nodeSquare);
 			}
 		}
-	}
 
-	window.display();
+		debugMap_RT.display();
+	}	
 }

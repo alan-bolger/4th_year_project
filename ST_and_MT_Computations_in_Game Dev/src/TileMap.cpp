@@ -67,18 +67,18 @@ void TileMap::loadTileMap(const std::string &fileName, sf::Texture *tileSet, con
 /// This only draws the portion of the tile map that's currently
 /// visible on-screen. It does not render any non-visible tiles.
 /// </summary>
-/// <param name="window">A render window.</param>
+/// <param name="target">A render target.</param>
 /// <param name="alpha">The opacity of the tilemap.</param>
-void TileMap::draw(sf::RenderWindow &window, const uint8_t &alpha)
+void TileMap::draw(sf::RenderTarget &target, const uint8_t &alpha)
 {
 	renderTexture.clear(sf::Color::Transparent);
 
 	// Optimise tile drawing
-	int startTileX = (window.getView().getCenter().x - (window.getSize().x / 2) * zoom) / tileW;
-	int startTileY = (window.getView().getCenter().y - (window.getSize().y / 2) * zoom) / tileH;
+	int startTileX = (target.getView().getCenter().x - (target.getSize().x / 2) * zoom) / tileW;
+	int startTileY = (target.getView().getCenter().y - (target.getSize().y / 2) * zoom) / tileH;
 
-	int endTileX = (window.getView().getCenter().x + (window.getSize().x / 2) * zoom) / tileW;
-	int endTileY = (window.getView().getCenter().y + (window.getSize().y / 2) * zoom) / tileH;
+	int endTileX = (target.getView().getCenter().x + (target.getSize().x / 2) * zoom) / tileW;
+	int endTileY = (target.getView().getCenter().y + (target.getSize().y / 2) * zoom) / tileH;
 
 	// This dictates how many tiles outside of the screen view will be drawn (used to avoid artifacts around the screen borders)
 	const int safeZone = 2;
@@ -137,5 +137,5 @@ void TileMap::draw(sf::RenderWindow &window, const uint8_t &alpha)
 	sf::Sprite renderSprite(renderTexture.getTexture());
 	renderSprite.setColor(sf::Color(renderSprite.getColor().r, renderSprite.getColor().g, renderSprite.getColor().b, alpha));
 
-	window.draw(renderSprite);
+	target.draw(renderSprite);
 }
