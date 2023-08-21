@@ -93,7 +93,12 @@ void TileMap::draw(sf::RenderWindow &window, const uint8_t &alpha)
 				continue;
 			}
 
-			tileNumber = tileArr[y * mapW + x] - 1; // The negative 1 is a 'Tiled' thing
+			tileNumber = tileArr[y * mapW + x] - 1; // The negative 1 is a 'Tiled' map export thing
+
+			if (tileNumber == -1)
+			{
+				continue;
+			}
 
 			// Get the UV coordinates of the tile in the tileset
 			tu = tileNumber % (tileSet->getSize().x / tileW);

@@ -19,6 +19,7 @@
 #include "Vec3.h"
 #include "Timer.h"
 #include "AStar.h"
+#include "TileMap.h"
 
 class Pathfinding
 {
@@ -32,12 +33,17 @@ private:
 	static const unsigned int SCREEN_WIDTH = 1280u;
 	static const unsigned int SCREEN_HEIGHT = 720u;
 	sf::RenderWindow window;
-	AStar *aStar;
-	int mapWidth = 32;
-	int mapHeight = 32;
-	int nodeWidth = 16;
-	int nodeHeight = 16;
+	std::unique_ptr<AStar> aStar;
+	std::unique_ptr<TileMap> layer_0;
+	std::unique_ptr<TileMap> layer_1;
+	std::unique_ptr<sf::Texture> tileSet;
+	int mapWidth = 256;
+	int mapHeight = 256;
+	int tileWidth = 16;
+	int tileHeight = 16;
 	int borderSize = 8;
+	bool showTileMap = true;
+	bool showDebugMap = true;
 	std::vector<sf::RectangleShape> nodes;
 	Vec3f nodeColour{ 0, 0, 1 };
 	Vec3f connectionColour{ 0, 1, 0 };
@@ -45,6 +51,7 @@ private:
 	Vec3f botColour{ 1, 0, 0 };
 	std::vector<int> mapData;
 	sf::View windowView;
+	sf::RenderTexture debugMapRT;
 };
 
 #endif // !PATHFINDING_H

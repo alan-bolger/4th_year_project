@@ -164,7 +164,7 @@ void AStar::initialise(const std::vector<int> &mapData)
 		{
 			nodes[y * mapWidth + x].x = x;
 			nodes[y * mapWidth + x].y = y;
-			nodes[y * mapWidth + x].obstacle = false;
+			nodes[y * mapWidth + x].obstacle = (mapData[y * mapWidth + x] != 0) ? true : false;
 			nodes[y * mapWidth + x].parent = nullptr;
 			nodes[y * mapWidth + x].visited = false;
 		}
