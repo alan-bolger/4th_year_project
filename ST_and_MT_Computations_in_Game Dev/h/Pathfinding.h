@@ -18,38 +18,38 @@
 #include "ThreadPool.h"
 #include "Vec3.h"
 #include "Timer.h"
-#include "AStar.h"
 #include "TileMap.h"
+#include "Bot.h"
 
 class Pathfinding
 {
 public:
 	Pathfinding();
 	~Pathfinding();
+	void update(const sf::Time &dt);
 	void handleUI();
 	void render();
 
 private:
 	static const unsigned int SCREEN_WIDTH = 1280u;
 	static const unsigned int SCREEN_HEIGHT = 720u;
-	std::unique_ptr<AStar> aStar;
 	std::unique_ptr<TileMap> layer_0;
 	std::unique_ptr<TileMap> layer_1;
 	std::unique_ptr<sf::Texture> tileSet;
 	sf::RenderTexture tileMap_RT;
-	sf::RenderTexture debugMap_RT;
+	std::unique_ptr<sf::RenderTexture> main_RT;
+	float zoom = 1.0f;
 	int mapWidth = 256;
 	int mapHeight = 256;
 	int tileWidth = 16;
 	int tileHeight = 16;
-	int borderSize = 8;
 	bool showTileMap = true;
-	bool showDebugMap = true;
+	bool showDebugMap = false;
+	ImVec2 renderWindowSize{ SCREEN_WIDTH, SCREEN_HEIGHT };
 	std::vector<sf::RectangleShape> nodes;
 	Vec3f nodeColour{ 0, 0, 1 };
-	Vec3f connectionColour{ 0, 1, 0 };
-	Vec3f pathColour{ 1, 1, 1 };
-	Vec3f botColour{ 1, 0, 0 };
+	Vec3f obstacleColour{ 1, 0, 0 };
+	Vec3f passableColour{ 0, 1, 0 };
 	std::vector<int> mapData;
 	sf::View windowView;
 };

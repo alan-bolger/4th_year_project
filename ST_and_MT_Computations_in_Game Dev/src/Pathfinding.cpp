@@ -15,22 +15,28 @@ Pathfinding::Pathfinding()
 	layer_0->loadTileMap("assets/pathfinding_map_layer_0.txt", tileSet.get(), tileWidth, tileHeight, mapWidth, mapHeight);
 	layer_1->loadTileMap("assets/pathfinding_map_layer_1.txt", tileSet.get(), tileWidth, tileHeight, mapWidth, mapHeight);
 
-	aStar = std::make_unique<AStar>(*layer_1->getTileArray(), mapWidth, mapHeight);
-
-	windowView.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-	//windowView.zoom(0.5f);
-
 	tileMap_RT.create(tileWidth * mapWidth, tileHeight * mapHeight);
-	debugMap_RT.create(tileWidth * mapWidth, tileHeight * mapHeight);
 
-	// Quick path test
-	aStar->run({ 3, 11 }, { 18, 21 });
+	windowView.setSize(tileWidth * mapWidth, tileHeight * mapHeight);
+	windowView.setCenter((tileWidth * mapWidth) / 2, (tileHeight * mapHeight) / 2);
+
+	main_RT = std::make_unique<sf::RenderTexture>();
+	main_RT->create(SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
 /// <summary>
 /// Pathfinding constructor.
 /// </summary>
 Pathfinding::~Pathfinding()
+{
+
+}
+
+/// <summary>
+/// Update.
+/// </summary>
+/// <param name="dt">Delta time.</param>
+void Pathfinding::update(const sf::Time &dt)
 {
 
 }
@@ -55,15 +61,11 @@ void Pathfinding::handleUI()
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-        ImGui::ColorEdit3("Connections", connectionColour.get());
+        ImGui::ColorEdit3("Obstacles", obstacleColour.get());
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::ColorEdit3("Paths", pathColour.get());
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::ColorEdit3("Bots", botColour.get());
+		ImGui::ColorEdit3("Passable", passableColour.get());
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -71,13 +73,55 @@ void Pathfinding::handleUI()
 		ImGui::Checkbox("Show Debug Map", &showDebugMap);
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		if (ImGui::Button("Zoom -"))
+		{
+			zoom *= 2.0f;
+			windowView.zoom(2.0f);
+		}
+
+		if (ImGui::Button("Zoom +"))
+		{
+			zoom *= 0.5f;
+			windowView.zoom(0.5f);
+			windowView.setCenter(windowView.getCenter());
+		}
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
     }
+
+	if (ImGui::CollapsingHeader("Bots"))
+	{
+		// Place bots using this panel
+	}
 
 	// Render output window
 	ImGui::Begin("Render");
 
-	ImGui::Image(tileMap_RT);
-	ImGui::Image(debugMap_RT);
+	// Handle ImGui window resize
+	ImVec2 currentWindowSize = ImGui::GetWindowSize();
+
+	if (currentWindowSize.x != renderWindowSize.x || currentWindowSize.y != renderWindowSize.y)
+	{
+		renderWindowSize = currentWindowSize;
+
+		ImVec2 vMin = ImGui::GetWindowContentRegionMin();
+		ImVec2 vMax = ImGui::GetWindowContentRegionMax();
+
+		float sizeX = vMax.x - vMin.x;
+		float sizeY = vMax.y - vMin.y;
+
+		main_RT = std::make_unique<sf::RenderTexture>();
+		main_RT->create(sizeX, sizeY);
+	}
+
+	main_RT->clear(sf::Color::Transparent);
+
+	sf::Sprite renderSprite(tileMap_RT.getTexture());
+	main_RT->draw(renderSprite);
+	main_RT->display();
+
+	ImGui::Image(*main_RT);
 
 	ImGui::End();
 
@@ -110,18 +154,14 @@ void Pathfinding::handleUI()
 /// </summary>
 void Pathfinding::render()
 {
-	// Clear render textures
 	tileMap_RT.clear(sf::Color(0, 0, 0, 0));
-	debugMap_RT.clear(sf::Color(0, 0, 0, 0));
-
 	tileMap_RT.setView(windowView);
-	debugMap_RT.setView(windowView);
 
 	if (showTileMap)
 	{
 		// Draw map
-		layer_0->draw(tileMap_RT);
-		layer_1->draw(tileMap_RT);
+		layer_0->draw(tileMap_RT, zoom);
+		layer_1->draw(tileMap_RT, zoom);
 	}
 
 	if (showDebugMap)
@@ -130,51 +170,6 @@ void Pathfinding::render()
 		sf::RectangleShape nodeSquare;
 		nodeSquare.setSize(sf::Vector2f(tileWidth / 2, tileHeight / 2));
 
-		// Draw connections to neighbours
-		for (int x = 0; x < mapWidth; ++x)
-		{
-			for (int y = 0; y < mapHeight; ++y)
-			{
-				for (auto n : aStar->getNodes()[y * mapWidth + x].neighbours)
-				{
-					sf::Vertex connection[] =
-					{
-						sf::Vertex(sf::Vector2f(x * tileWidth + (tileWidth / 2), y * tileHeight + (tileHeight / 2))),
-						sf::Vertex(sf::Vector2f(n->x * tileWidth + (tileWidth / 2), n->y * tileHeight + (tileHeight / 2)))
-					};
-
-					connection[0].color = sf::Color(connectionColour.x * 255, connectionColour.y * 255, connectionColour.z * 255);
-					connection[1].color = sf::Color(connectionColour.x * 255, connectionColour.y * 255, connectionColour.z * 255);
-
-					debugMap_RT.draw(connection, 2, sf::Lines);
-				}
-			}
-		}
-
-		// Draw the path by beginning at the end and following the parent node trail
-		// back to the start - the start node will not have a parent path to follow
-		if (aStar->getNodeEnd() != nullptr)
-		{
-			Node *p = aStar->getNodeEnd();
-
-			while (p->parent != nullptr)
-			{
-				sf::Vertex connection[] =
-				{
-					sf::Vertex(sf::Vector2f(p->x * tileWidth + (tileWidth / 2), p->y * tileHeight + (tileHeight / 2))),
-					sf::Vertex(sf::Vector2f(p->parent->x * tileWidth + (tileWidth / 2), p->parent->y * tileHeight + (tileHeight / 2)))
-				};
-
-				connection[0].color = sf::Color(pathColour.x * 255, pathColour.y * 255, pathColour.z * 255);
-				connection[1].color = sf::Color(pathColour.x * 255, pathColour.y * 255, pathColour.z * 255);
-
-				debugMap_RT.draw(connection, 2, sf::Lines);
-
-				// Set next node to this node's parent
-				p = p->parent;
-			}
-		}
-
 		// Draw nodes
 		for (int x = 0; x < mapWidth; ++x)
 		{
@@ -182,31 +177,21 @@ void Pathfinding::render()
 			{
 				nodeSquare.setFillColor(sf::Color(nodeColour.x * 255, nodeColour.y * 255, nodeColour.z * 255));
 
-				if (aStar->getNodes()[y * mapWidth + x].obstacle == true) // Node is an obstacle
+				if (layer_0->getTileArray()->at(y * mapWidth + x) != 0) // Node is passable
 				{
-					nodeSquare.setFillColor(sf::Color::Red);
+					nodeSquare.setFillColor(sf::Color(passableColour.x * 255, passableColour.y * 255, passableColour.z * 255));
 				}
 
-				if (aStar->getNodes()[y * mapWidth + x].visited == true) // Node was visited
+				if (layer_1->getTileArray()->at(y * mapWidth + x) != 0) // Node is an obstacle
 				{
-					nodeSquare.setFillColor(sf::Color(52, 171, 235));
-				}
-
-				if (&aStar->getNodes()[y * mapWidth + x] == aStar->getNodeStart()) // Node is start of path
-				{
-					nodeSquare.setFillColor(sf::Color::Green);
-				}
-
-				if (&aStar->getNodes()[y * mapWidth + x] == aStar->getNodeEnd()) // Node is end of path
-				{
-					nodeSquare.setFillColor(sf::Color(235, 131, 52));
+					nodeSquare.setFillColor(sf::Color(obstacleColour.x * 255, obstacleColour.y * 255, obstacleColour.z * 255));
 				}
 
 				nodeSquare.setPosition((x * tileWidth) + (tileWidth / 4), (y * tileHeight) + (tileWidth / 4));
-				debugMap_RT.draw(nodeSquare);
+				tileMap_RT.draw(nodeSquare);
 			}
 		}
+	}
 
-		debugMap_RT.display();
-	}	
+	tileMap_RT.display();
 }

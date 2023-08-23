@@ -19,7 +19,7 @@ struct Node
 	float localGoal;
 	bool obstacle = false;
 	bool visited = false;
-	std::vector<Node *> neighbours;
+	std::vector<Node*> neighbours;
 	Node *parent;
 };
 

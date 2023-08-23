@@ -51,9 +51,6 @@ void TileMap::loadTileMap(const std::string &fileName, sf::Texture *tileSet, con
 	vertices.setPrimitiveType(sf::Quads);
 	vertices.resize(mapW * mapH * 4);
 
-	// Resize render texture
-	renderTexture.create(mapW * tileW, mapH * tileH);
-
 	// These are used in the draw function
 	this->tileSet = tileSet;
 	this->tileW = tileW;
@@ -68,11 +65,10 @@ void TileMap::loadTileMap(const std::string &fileName, sf::Texture *tileSet, con
 /// visible on-screen. It does not render any non-visible tiles.
 /// </summary>
 /// <param name="target">A render target.</param>
+/// <param name="zoom">The current zoom level.</param>
 /// <param name="alpha">The opacity of the tilemap.</param>
-void TileMap::draw(sf::RenderTarget &target, const uint8_t &alpha)
+void TileMap::draw(sf::RenderTarget &target, float zoom, const uint8_t &alpha)
 {
-	renderTexture.clear(sf::Color::Transparent);
-
 	// Optimise tile drawing
 	int startTileX = (target.getView().getCenter().x - (target.getSize().x / 2) * zoom) / tileW;
 	int startTileY = (target.getView().getCenter().y - (target.getSize().y / 2) * zoom) / tileH;
@@ -128,14 +124,14 @@ void TileMap::draw(sf::RenderTarget &target, const uint8_t &alpha)
 			sf::RenderStates state;
 			state.texture = tileSet;
 
-			renderTexture.draw(vertices, 4, sf::Quads, state);
+			target.draw(vertices, 4, sf::Quads, state);
 		}
 	}
 
-	renderTexture.display();
+	//renderTexture.display();
 
-	sf::Sprite renderSprite(renderTexture.getTexture());
-	renderSprite.setColor(sf::Color(renderSprite.getColor().r, renderSprite.getColor().g, renderSprite.getColor().b, alpha));
+	//sf::Sprite renderSprite(renderTexture.getTexture());
+	//renderSprite.setColor(sf::Color(renderSprite.getColor().r, renderSprite.getColor().g, renderSprite.getColor().b, alpha));
 
-	target.draw(renderSprite);
+	//target.draw(renderSprite);
 }

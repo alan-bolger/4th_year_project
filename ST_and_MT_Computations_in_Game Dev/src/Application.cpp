@@ -84,6 +84,9 @@ void Application::update(const sf::Time &dt)
 	// Cover entire window with dockspace
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
+	// Update anything that needs to be updated
+	if (pathfinding != nullptr) { pathfinding->update(dt); }
+
 	// Update and draw UI
 	handleUI();
 }
