@@ -31,7 +31,8 @@ public:
 	Node *getNodes();
 	Node *getNodeStart();
 	Node *getNodeEnd();
-	void run(sf::Vector2f start, sf::Vector2f end);
+	void run(sf::Vector2i start, sf::Vector2i end);
+	std::list<sf::Vector2i> *getPath();
 
 private:
 	Node *nodes = nullptr;
@@ -39,6 +40,7 @@ private:
 	Node *nodeEnd = nullptr;
 	int mapWidth;
 	int mapHeight;
+	std::list<sf::Vector2i> path;
 
 	void initialise(const std::vector<int> &mapData);
 };

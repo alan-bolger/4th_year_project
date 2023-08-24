@@ -45,13 +45,16 @@ private:
 	int tileHeight = 16;
 	bool showTileMap = true;
 	bool showDebugMap = false;
+	bool showBots = true;
+	float botSpeed = 0.5f;
+	bool multiThreaded = false;
 	ImVec2 renderWindowSize{ SCREEN_WIDTH, SCREEN_HEIGHT };
 	std::vector<sf::RectangleShape> nodes;
 	Vec3f nodeColour{ 0, 0, 1 };
 	Vec3f obstacleColour{ 1, 0, 0 };
 	Vec3f passableColour{ 0, 1, 0 };
-	std::vector<int> mapData;
 	sf::View windowView;
+	std::vector<Bot*> bots;
 };
 
 #endif // !PATHFINDING_H

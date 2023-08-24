@@ -51,11 +51,11 @@ Node *AStar::getNodeEnd()
 /// </summary>
 /// <param name="start">The starting node.</param>
 /// <param name="end">The destination node.</param>
-void AStar::run(sf::Vector2f start, sf::Vector2f end)
+void AStar::run(sf::Vector2i start, sf::Vector2i end)
 {
 	// Set start and end node
-	nodeStart = &nodes[(int)start.y * mapWidth + (int)start.x];
-	nodeEnd = &nodes[(int)end.y * mapWidth + (int)end.x];
+	nodeStart = &nodes[start.y * mapWidth + start.x];
+	nodeEnd = &nodes[end.y * mapWidth + end.x];
 
 	// Reset the navigation graph
 	for (int x = 0; x < mapWidth; x++)
@@ -147,6 +147,29 @@ void AStar::run(sf::Vector2f start, sf::Vector2f end)
 			}
 		}
 	}
+
+	// Create a list of the path's tile coordinates
+	path.clear();
+
+	Node *p = nodeEnd;
+
+	while (p->parent != nullptr)
+	{
+		// Add to path list
+		path.push_front(sf::Vector2i(p->parent->x, p->parent->y));
+
+		// Set next node to this node's parent
+		p = p->parent;
+	}
+}
+
+/// <summary>
+/// Obtain a list of the path to the destination.
+/// </summary>
+/// <returns>The path to take to reach the destination.</returns>
+std::list<sf::Vector2i> *AStar::getPath()
+{
+	return &path;
 }
 
 /// <summary>
@@ -195,33 +218,6 @@ void AStar::initialise(const std::vector<int> &mapData)
 			{
 				nodes[y * mapWidth + x].neighbours.push_back(&nodes[(y + 0) * mapWidth + (x + 1)]);
 			}
-
-			// These are diagonal connections
-			// I probably won't use these but I'll comment them out and leave them here for now
-			
-			//	if (y > 0 && x > 0)
-			//	{
-			//		nodes[y * mapWidth + x].neighbours.push_back(&nodes[(y - 1) * mapWidth + (x - 1)]);
-			//	}
-			//	  
-			//	if (y < mapHeight - 1 && x > 0)
-			//	{
-			//		nodes[y * mapWidth + x].neighbours.push_back(&nodes[(y + 1) * mapWidth + (x - 1)]);
-			//	}
-			//	  
-			//	if (y > 0 && x < mapWidth - 1)
-			//	{
-			//		nodes[y * mapWidth + x].neighbours.push_back(&nodes[(y - 1) * mapWidth + (x + 1)]);
-			//	}
-			//	  
-			//	if (y < mapHeight - 1 && x < mapWidth - 1)
-			//	{
-			//		nodes[y * mapWidth + x].neighbours.push_back(&nodes[(y + 1) * mapWidth + (x + 1)]);
-			//	}
 		}
 	}
-
-	// Place start and end nodes to avoid null pointers
-	//nodeStart = &nodes[3 * mapWidth + 2];
-	//nodeEnd = &nodes[28 * mapWidth + 26];
 }

@@ -22,6 +22,9 @@ Pathfinding::Pathfinding()
 
 	main_RT = std::make_unique<sf::RenderTexture>();
 	main_RT->create(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	// Test bot
+	bots.push_back(new Bot(6, 6, *layer_1->getTileArray()));
 }
 
 /// <summary>
@@ -38,7 +41,10 @@ Pathfinding::~Pathfinding()
 /// <param name="dt">Delta time.</param>
 void Pathfinding::update(const sf::Time &dt)
 {
-
+	for (int i = 0; i < bots.size(); ++i)
+	{
+		bots.at(i)->update(botSpeed);
+	}
 }
 
 /// <summary>
@@ -92,7 +98,21 @@ void Pathfinding::handleUI()
 
 	if (ImGui::CollapsingHeader("Bots"))
 	{
-		// Place bots using this panel
+		ImGui::SeparatorText("Thread Usage");
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		static int sel = 0;
+		ImGui::RadioButton("Single-threaded", &sel, 0);
+		ImGui::RadioButton("Multi-threaded", &sel, 1);
+		sel == 0 ? multiThreaded = false : multiThreaded = true;
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		if (ImGui::Button("Run Test"))
+		{
+			bots[0]->startPathfinding(54, 5);
+		}
 	}
 
 	// Render output window
@@ -190,6 +210,14 @@ void Pathfinding::render()
 				nodeSquare.setPosition((x * tileWidth) + (tileWidth / 4), (y * tileHeight) + (tileWidth / 4));
 				tileMap_RT.draw(nodeSquare);
 			}
+		}
+	}
+
+	if (showBots)
+	{
+		for (int i = 0; i < bots.size(); ++i)
+		{
+			bots.at(i)->draw(tileMap_RT);
 		}
 	}
 
