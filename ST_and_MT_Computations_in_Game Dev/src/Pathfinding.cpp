@@ -22,6 +22,8 @@ Pathfinding::Pathfinding()
 
 	main_RT = std::make_unique<sf::RenderTexture>();
 	main_RT->create(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	threadPool = std::make_unique<ThreadPool>(std::thread::hardware_concurrency());
 }
 
 /// <summary>
@@ -145,6 +147,7 @@ void Pathfinding::handleUI()
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
 		ImGui::Checkbox("Show Bots", &showBots);
+		ImGui::Checkbox("Show Paths", &showPaths);
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -156,6 +159,13 @@ void Pathfinding::handleUI()
 		ImGui::RadioButton("Single-threaded", &sel, 0);
 		ImGui::RadioButton("Multi-threaded", &sel, 1);
 		sel == 0 ? multiThreaded = false : multiThreaded = true;
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		if (ImGui::Button("Start Pathfinding"))
+		{
+			startPathfinding(multiThreaded);
+		}
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 	}
@@ -357,4 +367,30 @@ void Pathfinding::render()
 	}
 
 	tileMap_RT.display();
+}
+
+/// <summary>
+/// Begin the pathfinding algorithm.
+/// </summary>
+/// <param name="multiThreaded">False for single-threaded and true for multi-threaded.</param>
+void Pathfinding::startPathfinding(bool multiThreaded)
+{
+	if (multiThreaded)
+	{
+		for (auto &bot : bots)
+		{
+			// This lambda adds a block of code to the thread pool as a job
+			threadPool->addJob([=]
+				{
+					bot->startPathfinding(destinationNode.x, destinationNode.y);
+				});
+		}
+	}
+	else
+	{
+		for (auto &bot : bots)
+		{
+			bot->startPathfinding(destinationNode.x, destinationNode.y);
+		}
+	}
 }
