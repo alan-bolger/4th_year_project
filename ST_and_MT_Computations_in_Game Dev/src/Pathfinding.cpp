@@ -22,9 +22,6 @@ Pathfinding::Pathfinding()
 
 	main_RT = std::make_unique<sf::RenderTexture>();
 	main_RT->create(SCREEN_WIDTH, SCREEN_HEIGHT);
-
-	// Test bot
-	bots.push_back(new Bot(6, 6, *layer_1->getTileArray()));
 }
 
 /// <summary>
@@ -94,10 +91,33 @@ void Pathfinding::handleUI()
 		}
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::SeparatorText("Mouse Positon (Map Coordinates)");
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		std::string strX = "X: " + std::to_string(renderWindowMousePos.x);
+		std::string strY = "Y: " + std::to_string(renderWindowMousePos.y);
+
+		ImGui::Text(strX.c_str());
+		ImGui::Text(strY.c_str());
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
     }
 
 	if (ImGui::CollapsingHeader("Bots"))
 	{
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::Text("This is the time taken\nbetween bot movements (in seconds)");
+		ImGui::InputFloat("Speed", &botSpeed);
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::Checkbox("Show Bots", &showBots);
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
 		ImGui::SeparatorText("Thread Usage");
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
@@ -108,15 +128,23 @@ void Pathfinding::handleUI()
 		sel == 0 ? multiThreaded = false : multiThreaded = true;
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		if (ImGui::Button("Run Test"))
-		{
-			bots[0]->startPathfinding(54, 5);
-		}
 	}
 
 	// Render output window
 	ImGui::Begin("Render");
+
+	// Draw content region for debug purposes
+	// The content region position is also used to map the
+	// mouse position correctly
+	ImVec2 vMin = ImGui::GetWindowContentRegionMin();
+	ImVec2 vMax = ImGui::GetWindowContentRegionMax();
+
+	vMin.x += ImGui::GetWindowPos().x;
+	vMin.y += ImGui::GetWindowPos().y;
+	vMax.x += ImGui::GetWindowPos().x;
+	vMax.y += ImGui::GetWindowPos().y;
+
+	ImGui::GetForegroundDrawList()->AddRect(vMin, vMax, IM_COL32(255, 255, 0, 255));
 
 	// Handle ImGui window resize
 	ImVec2 currentWindowSize = ImGui::GetWindowSize();
@@ -140,6 +168,17 @@ void Pathfinding::handleUI()
 	sf::Sprite renderSprite(tileMap_RT.getTexture());
 	main_RT->draw(renderSprite);
 	main_RT->display();
+
+	// Get current mouse coordinates from ImGui window
+	ImVec2 mousePos = ImGui::GetMousePos();
+
+	// As the mouse position is relative to the entire window,
+	// the region content position must be taken into account
+	mousePos.x -= vMin.x;
+	mousePos.y -= vMin.y;
+
+	// Use the render texture view to convert the mouse position to world coordinates
+	renderWindowMousePos = tileMap_RT.mapPixelToCoords(sf::Vector2i(mousePos.x, mousePos.y));
 
 	ImGui::Image(*main_RT);
 
@@ -166,6 +205,19 @@ void Pathfinding::handleUI()
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 	{
 		windowView.move({ jumpRange, 0.0f });
+	}
+
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && !mouseLeftButtonClicked)
+	{
+		mouseLeftButtonClicked = true;
+	}
+
+	if (!sf::Mouse::isButtonPressed(sf::Mouse::Left) && mouseLeftButtonClicked)
+	{
+		sf::Vector2i tileCoords = sf::Vector2i(renderWindowMousePos.x / tileWidth, renderWindowMousePos.y / tileHeight);
+		bots.push_back(new Bot(tileCoords.x, tileCoords.y, *layer_1->getTileArray()));
+
+		mouseLeftButtonClicked = false;
 	}
 }
 

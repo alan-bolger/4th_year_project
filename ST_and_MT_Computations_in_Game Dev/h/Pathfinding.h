@@ -46,8 +46,10 @@ private:
 	bool showTileMap = true;
 	bool showDebugMap = false;
 	bool showBots = true;
+	bool showBotPaths = true;
 	float botSpeed = 0.5f;
 	bool multiThreaded = false;
+	sf::Vector2f renderWindowMousePos;
 	ImVec2 renderWindowSize{ SCREEN_WIDTH, SCREEN_HEIGHT };
 	std::vector<sf::RectangleShape> nodes;
 	Vec3f nodeColour{ 0, 0, 1 };
@@ -55,6 +57,7 @@ private:
 	Vec3f passableColour{ 0, 1, 0 };
 	sf::View windowView;
 	std::vector<Bot*> bots;
+	bool mouseLeftButtonClicked = false;
 };
 
 #endif // !PATHFINDING_H
