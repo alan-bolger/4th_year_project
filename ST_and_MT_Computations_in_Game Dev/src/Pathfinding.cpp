@@ -215,7 +215,18 @@ void Pathfinding::handleUI()
 	if (!sf::Mouse::isButtonPressed(sf::Mouse::Left) && mouseLeftButtonClicked)
 	{
 		sf::Vector2i tileCoords = sf::Vector2i(renderWindowMousePos.x / tileWidth, renderWindowMousePos.y / tileHeight);
-		bots.push_back(new Bot(tileCoords.x, tileCoords.y, *layer_1->getTileArray()));
+		int index = tileCoords.y * mapWidth + tileCoords.x;
+
+		if ((index) >= 0 && (index) < (mapWidth * mapHeight))
+		{
+			if (layer_0->getTileArray()->at(index) != 0)
+			{
+				if (layer_1->getTileArray()->at(index) == 0)
+				{
+					bots.push_back(new Bot(tileCoords.x, tileCoords.y, *layer_1->getTileArray()));
+				}
+			}
+		}		
 
 		mouseLeftButtonClicked = false;
 	}
