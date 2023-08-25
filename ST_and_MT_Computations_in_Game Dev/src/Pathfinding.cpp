@@ -109,8 +109,38 @@ void Pathfinding::handleUI()
 	{
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::Text("This is the time taken\nbetween bot movements (in seconds)");
+		ImGui::Text("This is the time taken between\nbot movements (in seconds)");
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
 		ImGui::InputFloat("Speed", &botSpeed);
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::SeparatorText("Edit Mode");
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::Text("Place bots or the destination\nnode using the mouse and left-button");
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		static int selA = 0;
+		ImGui::RadioButton("Place Bots", &selA, 0);
+		ImGui::RadioButton("Select Destination", &selA, 1);
+		selA == 0 ? placeBotsMode = true : placeBotsMode = false;
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::SeparatorText("Destination Node (Tile Coords)");
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		std::string strX = "X: " + std::to_string(destinationNode.x);
+		std::string strY = "Y: " + std::to_string(destinationNode.y);
+
+		ImGui::Text(strX.c_str());
+		ImGui::Text(strY.c_str());
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -165,10 +195,6 @@ void Pathfinding::handleUI()
 
 	main_RT->clear(sf::Color::Transparent);
 
-	sf::Sprite renderSprite(tileMap_RT.getTexture());
-	main_RT->draw(renderSprite);
-	main_RT->display();
-
 	// Get current mouse coordinates from ImGui window
 	ImVec2 mousePos = ImGui::GetMousePos();
 
@@ -179,6 +205,21 @@ void Pathfinding::handleUI()
 
 	// Use the render texture view to convert the mouse position to world coordinates
 	renderWindowMousePos = tileMap_RT.mapPixelToCoords(sf::Vector2i(mousePos.x, mousePos.y));
+	sf::Vector2i tileCoords = sf::Vector2i(renderWindowMousePos.x / tileWidth, renderWindowMousePos.y / tileHeight);
+
+	// Draw cursor
+	sf::RectangleShape rect(sf::Vector2f(tileWidth, tileHeight));
+	rect.setOutlineThickness(-1.0f);
+	rect.setFillColor(sf::Color::Transparent);
+	rect.setPosition(tileCoords.x * tileWidth, tileCoords.y * tileHeight);
+	rect.setOutlineColor(placeBotsMode ? sf::Color::Red : sf::Color::Green);
+
+	tileMap_RT.draw(rect);
+
+	sf::Sprite renderSprite(tileMap_RT.getTexture());
+	main_RT->draw(renderSprite);
+
+	main_RT->display();
 
 	ImGui::Image(*main_RT);
 
@@ -214,16 +255,47 @@ void Pathfinding::handleUI()
 
 	if (!sf::Mouse::isButtonPressed(sf::Mouse::Left) && mouseLeftButtonClicked)
 	{
-		sf::Vector2i tileCoords = sf::Vector2i(renderWindowMousePos.x / tileWidth, renderWindowMousePos.y / tileHeight);
+		// Simply to array index value
 		int index = tileCoords.y * mapWidth + tileCoords.x;
 
+		// Prevent out-of-bounds access
 		if ((index) >= 0 && (index) < (mapWidth * mapHeight))
 		{
+			// Bots can only be placed on empty floors
+			// This also works when setting the destination node
 			if (layer_0->getTileArray()->at(index) != 0)
 			{
 				if (layer_1->getTileArray()->at(index) == 0)
 				{
-					bots.push_back(new Bot(tileCoords.x, tileCoords.y, *layer_1->getTileArray()));
+					bool canPlace = true;
+
+					// This is kind of inefficient, but it works - it makes sure you can't
+					// place a bot over an existing bot
+					// Also, how cool is it to see 'auto bot' in a range-based for loop
+					for (const auto &bot : bots)
+					{
+						if (bot->getPosition() == tileCoords)
+						{
+							canPlace = false;
+						}
+					}
+
+					if (canPlace)
+					{
+						if (placeBotsMode)
+						{
+							bots.push_back(new Bot(tileCoords.x, tileCoords.y, *layer_1->getTileArray()));
+						}
+						else
+						{
+							// This is to prevent the destination node being updated with incorrect values when
+							// the mouse button is clicked outside of the render window
+							if (tileCoords.x >= 0 && tileCoords.x < mapWidth && tileCoords.y >= 0 && tileCoords.y < mapHeight)
+							{
+								destinationNode = tileCoords;
+							}							
+						}
+					}
 				}
 			}
 		}		

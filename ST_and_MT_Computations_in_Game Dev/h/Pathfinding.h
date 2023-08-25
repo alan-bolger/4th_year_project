@@ -49,6 +49,8 @@ private:
 	bool showBotPaths = true;
 	float botSpeed = 0.5f;
 	bool multiThreaded = false;
+	bool placeBotsMode = true;
+	sf::Vector2i destinationNode{ 4, 4 };
 	sf::Vector2f renderWindowMousePos;
 	ImVec2 renderWindowSize{ SCREEN_WIDTH, SCREEN_HEIGHT };
 	std::vector<sf::RectangleShape> nodes;

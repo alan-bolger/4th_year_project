@@ -63,6 +63,15 @@ void Bot::startPathfinding(int x, int y)
 }
 
 /// <summary>
+/// Gets the bots current position (in tile coordinates).
+/// </summary>
+/// <returns>The tile coordinate that the bot occupies.</returns>
+sf::Vector2i Bot::getPosition()
+{
+	return position;
+}
+
+/// <summary>
 /// Update.
 /// </summary>
 /// <param name="botSpeed">The time interval between bot movements in seconds.</param>
