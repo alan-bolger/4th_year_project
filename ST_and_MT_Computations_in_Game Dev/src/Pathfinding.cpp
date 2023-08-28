@@ -362,7 +362,7 @@ void Pathfinding::render()
 	{
 		for (int i = 0; i < bots.size(); ++i)
 		{
-			bots.at(i)->draw(tileMap_RT);
+			bots.at(i)->draw(tileMap_RT, showPaths);
 		}
 	}
 
@@ -377,6 +377,7 @@ void Pathfinding::startPathfinding(bool multiThreaded)
 {
 	if (multiThreaded)
 	{
+		// TODO: Add timer here
 		for (auto &bot : bots)
 		{
 			// This lambda adds a block of code to the thread pool as a job
@@ -388,6 +389,7 @@ void Pathfinding::startPathfinding(bool multiThreaded)
 	}
 	else
 	{
+		// TODO: Add timer here
 		for (auto &bot : bots)
 		{
 			bot->startPathfinding(destinationNode.x, destinationNode.y);

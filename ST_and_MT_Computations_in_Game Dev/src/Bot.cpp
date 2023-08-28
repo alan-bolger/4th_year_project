@@ -6,18 +6,10 @@
 /// <param name="x">The bot's X position (tile coordinates).</param>
 /// <param name="y">The bot's Y position (tile coordinates).</param>
 /// <param name="mapData">The map to perform pathfinding on.</param>
-/// <param name="encapsulatedAStar">Set to true to include the AStar object in the Bot object. Set this to false if passing in a singular AStar instance.</param>
-/// <param name="aStar">This is a pointer to a singular AStar instance. Only use this if 'encapsulatedAStar' is set to false.</param>
-Bot::Bot(int x, int y, const std::vector<int> &mapData, bool encapsulatedAStar, AStar *aStar) : position(x, y), encapsulatedAStar(encapsulatedAStar)
+Bot::Bot(int x, int y, const std::vector<int> &mapData) : position(x, y)
 {
-	if (!encapsulatedAStar && aStar != nullptr)
-	{
-		externalAStar = aStar;
-	}
-	else
-	{
-		this->aStar = std::make_unique<AStar>(mapData, 256, 256);
-	}
+	aStar = std::make_unique<AStar>(mapData, 256, 256);
+	encapsulatedAStar = true;
 
 	texture.loadFromFile("assets/dungeon_characters.png");
 
@@ -42,20 +34,7 @@ Bot::~Bot()
 void Bot::startPathfinding(int x, int y)
 {
 	// Perform pathfinding
-	if (encapsulatedAStar)
-	{
-		if (aStar != nullptr)
-		{
-			aStar->run(position, { x, y });
-		}		
-	}
-	else
-	{
-		if (externalAStar != nullptr)
-		{
-			externalAStar->run(position, { x, y });
-		}
-	}
+	aStar->run(position, { x, y });
 
 	// Reset clock
 	clock.restart();
@@ -105,7 +84,23 @@ void Bot::update(float botSpeed)
 /// Draw bots.
 /// </summary>
 /// <param name="target">A render target.</param>
-void Bot::draw(sf::RenderTarget &target)
+/// <param name="drawPath">Set to true to draw path.</param>
+void Bot::draw(sf::RenderTarget &target, bool drawPath)
 {
+	if (drawPath)
+	{
+		// Draw the path
+		sf::RectangleShape rect({ 16, 16 });
+		rect.setOutlineThickness(-1.0f);
+		rect.setFillColor(sf::Color::Transparent);
+
+		for (auto &node : *aStar->getPath())
+		{
+			rect.setPosition(node.x * 16, node.y * 16);
+			target.draw(rect);
+		}
+	}
+
+	// Draw the sprite
 	target.draw(sprite);
 }

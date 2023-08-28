@@ -1,5 +1,6 @@
 // --------------------------------------------
 // Bot.h
+// Bot.cpp
 // --------------------------------------------
 // An entity that can navigate through a map
 // using pathfinding.
@@ -15,12 +16,12 @@
 class Bot
 {
 public:
-    Bot(int x, int y, const std::vector<int> &mapData, bool encapsulatedAStar = true, AStar *aStar = nullptr);
+    Bot(int x, int y, const std::vector<int> &mapData);
     ~Bot();
     void startPathfinding(int x, int y);
     sf::Vector2i getPosition();
     void update(float botSpeed = 0.5f);
-    void draw(sf::RenderTarget &target);
+    void draw(sf::RenderTarget &target, bool drawPath);
 
 private:
     sf::Texture texture;
