@@ -86,6 +86,7 @@ void Application::update(const sf::Time &dt)
 
 	// Update anything that needs to be updated
 	if (pathfinding != nullptr) { pathfinding->update(dt); }
+	if (particleEffects != nullptr) { particleEffects->update(dt); }
 
 	// Update and draw UI
 	handleUI();
@@ -109,7 +110,7 @@ void Application::handleUI()
 
 		ImGui::PushItemWidth(-1);
 
-		const char *items[] = { "T01 - Raytracing", "T02 - Pathfinding", "T03 - TBC", "T04 - TBC", "T05 - TBC" };
+		const char *items[] = { "T01 - Raytracing", "T02 - Pathfinding", "T03 - Particle Effects", "T04 - TBC", "T05 - TBC" };
 		static int item_current = 0;
 		ImGui::ListBox("ListBox", &item_current, items, IM_ARRAYSIZE(items), 5);
 
@@ -125,6 +126,7 @@ void Application::handleUI()
 
 	if (raytracer != nullptr) {	raytracer->handleUI(); }
 	if (pathfinding != nullptr) { pathfinding->handleUI(); }
+	if (particleEffects != nullptr) { particleEffects->handleUI(); };
 
 	ImGui::End();
 }
@@ -156,6 +158,16 @@ void Application::loadTest(TestID testID)
 
 			break;
 		}
+
+		case TestID::T03_PARTICLE_EFFECTS:
+		{
+			if (particleEffects == nullptr)
+			{
+				particleEffects = new ParticleEffects();
+			}
+
+			break;
+		}
 	}
 }
 
@@ -169,6 +181,7 @@ void Application::draw()
 	ImGui::SFML::Render(window);
 
 	if (pathfinding != nullptr) { pathfinding->render(); }
+	if (particleEffects != nullptr) { particleEffects->render(); }
 
 	window.display();
 }

@@ -315,7 +315,7 @@ void Pathfinding::handleUI()
 }
 
 /// <summary>
-/// Draws the map and shows connections, bots, paths, etc.
+/// Draws the map and shows bots, paths, etc.
 /// </summary>
 void Pathfinding::render()
 {
@@ -331,11 +331,10 @@ void Pathfinding::render()
 
 	if (showDebugMap)
 	{
-		// Draw nodes and connections
+		// Draw nodes
 		sf::RectangleShape nodeSquare;
 		nodeSquare.setSize(sf::Vector2f(tileWidth / 2, tileHeight / 2));
 
-		// Draw nodes
 		for (int x = 0; x < mapWidth; ++x)
 		{
 			for (int y = 0; y < mapHeight; ++y)
