@@ -1,3 +1,11 @@
+// --------------------------------------------
+// TileMap.h
+// TileMap.cpp
+// --------------------------------------------
+// This tile map was adapted from the SFML
+// documentation's tile map example.
+// --------------------------------------------
+
 #ifndef TILEMAP_H
 #define TILEMAP_H
 
