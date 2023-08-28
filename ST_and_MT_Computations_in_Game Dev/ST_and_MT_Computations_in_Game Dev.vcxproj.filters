@@ -51,6 +51,9 @@
     <ClInclude Include="h\Particle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="h\DefaultParticle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp">
@@ -95,7 +98,7 @@
     <ClCompile Include="src\ParticleEffects.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Particle.cpp">
+    <ClCompile Include="src\DefaultParticle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

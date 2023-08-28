@@ -12,7 +12,7 @@ public:
 	bool alive;
 
 	Particle() { alive = false;	gen.seed(rd());	};
-	~Particle();
+	~Particle() { };
 	virtual void generate(sf::Vector2f startPosition) = 0;
 	virtual void update(const sf::Time &dt, sf::RenderTarget &renderTexture) = 0;
 
