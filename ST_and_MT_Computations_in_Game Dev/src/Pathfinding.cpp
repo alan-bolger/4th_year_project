@@ -18,7 +18,7 @@ Pathfinding::Pathfinding()
 	tileMap_RT.create(tileWidth * mapWidth, tileHeight * mapHeight);
 
 	windowView.setSize(tileWidth * mapWidth, tileHeight * mapHeight);
-	windowView.setCenter((tileWidth * mapWidth) / 2, (tileHeight * mapHeight) / 2);
+	windowView.setCenter(128 * 16, 128 * 16);
 
 	main_RT = std::make_unique<sf::RenderTexture>();
 	main_RT->create(SCREEN_WIDTH, SCREEN_HEIGHT);

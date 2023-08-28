@@ -22,6 +22,7 @@
     <ClInclude Include="h\Application.h" />
     <ClInclude Include="h\AStar.h" />
     <ClInclude Include="h\Bot.h" />
+    <ClInclude Include="h\Particle.h" />
     <ClInclude Include="h\ParticleEffects.h" />
     <ClInclude Include="h\Pathfinding.h" />
     <ClInclude Include="h\Raytracer.h" />
@@ -40,6 +41,7 @@
     <ClCompile Include="src\AStar.cpp" />
     <ClCompile Include="src\Bot.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Particle.cpp" />
     <ClCompile Include="src\ParticleEffects.cpp" />
     <ClCompile Include="src\Pathfinding.cpp" />
     <ClCompile Include="src\Raytracer.cpp" />

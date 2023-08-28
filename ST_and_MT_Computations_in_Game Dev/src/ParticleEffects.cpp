@@ -31,7 +31,19 @@ void ParticleEffects::update(const sf::Time &dt)
 /// </summary>
 void ParticleEffects::handleUI()
 {
+	if (ImGui::CollapsingHeader("Particles"))
+	{
+		// Particle properties
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
+		ImGui::SeparatorText("Properties");
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::InputInt("Num of Particles", &numOfParticles);
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+	}
 }
 
 /// <summary>
