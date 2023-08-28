@@ -19,14 +19,6 @@ Raytracer::Raytracer(int w, int h) : renderW(w), renderH(h)
     renderTileH = 64;
     maxBounces = 5;
     backgroundColour = 1.0f;
-    sRadius = 0.5f;
-    sX = 0.0f;
-    sY = 0.0f;
-    sZ = 0.0f;
-    sColour = 1.0f;
-    sTransparency = 0.0f;
-    sReflection = 0.0f;
-    sEmissionColour = 0.0f;
 
     // This sphere acts as the ground
     spheres.push_back(Sphere(Vec3f(0.0, -10000, -5), 10000, Vec3f(0.149, 0.509, 0.192), 1, 0, 0));
@@ -83,7 +75,7 @@ void Raytracer::handleUI()
         ImGui::InputInt("Width##03", &renderTileW);
         ImGui::InputInt("Height##04", &renderTileH);
 
-        // Limit max to 256 x 256 (min to 16)
+        // Limit max to 256 x 256
         renderTileW = std::clamp(renderTileW, 16, 256);
         renderTileH = std::clamp(renderTileH, 16, 256);
 

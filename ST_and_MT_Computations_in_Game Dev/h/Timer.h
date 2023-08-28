@@ -1,8 +1,8 @@
 // --------------------------------------------
-// | Timer.h                                  |
-// | -----------------------------------------|
-// | This class can be used to measure code   |
-// | execution.                               |
+// Timer.h
+// --------------------------------------------
+// This is a class that can be used to measure
+// time intervals between code executions.
 // --------------------------------------------
 
 #ifndef TIMER_H

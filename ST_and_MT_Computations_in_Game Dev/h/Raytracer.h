@@ -1,11 +1,8 @@
 // --------------------------------------------
-// | Raytracer.h							  |
-// | Raytracer.cpp							  |
-// | -----------------------------------------|
-// | This is a fairly simple raytracer that	  |
-// | can render spheres.	                  |
-// | It can operate on a single thread		  |
-// | or on multiple threads.				  |
+// Raytracer.h
+// Raytracer.cpp
+// --------------------------------------------
+// Raytracer multi threaded test.
 // --------------------------------------------
 
 #ifndef RAYTRACER_H
@@ -92,14 +89,6 @@ private:
     int renderTileH;
     int maxBounces;
     Vec3f backgroundColour;
-    float sRadius;
-    float sX;
-    float sY;
-    float sZ;
-    Vec3f sColour;
-    float sTransparency;
-    float sReflection;
-    Vec3f sEmissionColour;
     bool multiThreaded = true;
     int activeSphereIndex;
     bool sphereEditWindowOpen = false;

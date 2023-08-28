@@ -1,12 +1,12 @@
 // --------------------------------------------
-// | ThreadPool.h                             |
-// | ThreadPool.cpp							  |
-// | -----------------------------------------|
-// | This class creates a threadpool. By	  |
-// | default, it uses the maximum amount	  |
-// | of threads available. Use the			  |
-// | constructor parameter to set the number  |
-// | of threads manually.					  |
+// ThreadPool.h
+// ThreadPool.cpp
+// --------------------------------------------
+// This class creates a threadpool. By
+// default, it uses the maximum amount
+// of threads available. Use the
+// constructor parameter to set the number
+// of threads manually.
 // --------------------------------------------
 
 #ifndef THREADPOOL_H
@@ -31,7 +31,7 @@ public:
 	template<class T>
 	auto addJob(T job)->std::future<decltype(job())>
 	{
-		auto wrapper = std::make_shared<std::packaged_task<decltype(job()) ()>>(std::move(job));
+		auto wrapper = std::make_shared<std::packaged_task<decltype(job())()>>(std::move(job));
 
 		{
 			std::unique_lock<std::mutex> lock{ eventMutex };
