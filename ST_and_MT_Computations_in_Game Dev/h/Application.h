@@ -42,6 +42,7 @@ private:
 	Raytracer *raytracer = nullptr;
 	Pathfinding *pathfinding = nullptr;
 	ParticleEffects *particleEffects = nullptr;
+	sf::Time timePerFrame = sf::seconds(1.f / 60.0f);
 
 	void processEvents();
 	void update(const sf::Time &dt);

@@ -5,10 +5,6 @@
 /// </summary>
 DefaultParticle::DefaultParticle()
 {
-	particle.setSize(sf::Vector2f(2, 2));
-	particle.setOrigin(particle.getSize() / 2.0f);
-	particle.setFillColor(sf::Color(255, 255, 0, 255));
-
 	acceleration = sf::Vector2f(0.0f, 0.0f);
 }
 
@@ -33,7 +29,7 @@ void DefaultParticle::generate(sf::Vector2f startPosition)
 	std::uniform_real_distribution<double> angleDist(0.0, 359.0);
 	angle = angleDist(gen) * (PI / 180.0);
 
-	// Random time between 4.0 and 8.0 seconds
+	// Random time between 4.0 and 20.0 seconds
 	std::uniform_real_distribution<double> timeToLiveDist(4.0, 20.0);
 	timeToLive = sf::seconds(timeToLiveDist(gen));
 
@@ -60,8 +56,9 @@ void DefaultParticle::generate(sf::Vector2f startPosition)
 /// Update.
 /// </summary>
 /// <param name="dt">Delta time.</param>
-/// <param name="renderTexture">A reference to a render texture.</param>
-void DefaultParticle::update(const sf::Time &dt, sf::RenderTarget &renderTexture)
+/// <param name="pixels">An array containing pixel data.</param>
+/// <param name="scrW">The screen/pixel array width.</param>
+void DefaultParticle::update(const sf::Time &dt, std::vector<uint8_t> &pixels, int scrW)
 {
 	timeToLive -= dt;
 
@@ -70,9 +67,6 @@ void DefaultParticle::update(const sf::Time &dt, sf::RenderTarget &renderTexture
 
 	position.x += velocity.x * dt.asSeconds();
 	position.y += velocity.y * dt.asSeconds();
-
-	particle.setFillColor(sf::Color(255, modifierValue, 0, modifierValue));
-	particle.setPosition(position);
 
 	if (timeToLive <= sf::seconds(0.01f))
 	{
@@ -87,5 +81,15 @@ void DefaultParticle::update(const sf::Time &dt, sf::RenderTarget &renderTexture
 		modifierValue = 0;
 	}
 
-	renderTexture.draw(particle);
+	// TODO: Get rid of particle rectangle, draw at pixel level instead
+	// TODO: Pass in pixel grid width for use here
+	int index = (static_cast<int>(position.y) * scrW + static_cast<int>(position.x)) * 4;
+
+	if (index >= 0 && index < pixels.size())
+	{
+		pixels[index] = 255;
+		pixels[index + 1] = modifierValue;
+		pixels[index + 2] = 0;
+		pixels[index + 3] = modifierValue;
+	}
 }

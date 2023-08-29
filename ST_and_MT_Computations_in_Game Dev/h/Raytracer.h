@@ -16,8 +16,6 @@
 
 #include <SFML/Graphics.hpp>
 
-constexpr auto PI = 3.141592653589793;
-
 struct Sphere
 {
     Vec3f center;
@@ -77,6 +75,7 @@ public:
     void handleUI();
 
 private:	
+    const double PI = 3.141592653589793;
 	int renderW;
 	int renderH;
     Vec3f rayOrigin{ 0.0f, 0.0f, 10.0f };

@@ -30,7 +30,6 @@ void Application::start()
 {
 	sf::Clock clock;
 	sf::Time timeSinceLastUpdate = sf::Time::Zero;
-	sf::Time timePerFrame = sf::seconds(1.f / 60.0f);
 
 	while (window.isOpen() && !exitApp)
 	{
@@ -163,7 +162,7 @@ void Application::loadTest(TestID testID)
 		{
 			if (particleEffects == nullptr)
 			{
-				particleEffects = new ParticleEffects();
+				particleEffects = new ParticleEffects(timePerFrame);
 			}
 
 			break;
@@ -181,7 +180,6 @@ void Application::draw()
 	ImGui::SFML::Render(window);
 
 	if (pathfinding != nullptr) { pathfinding->render(); }
-	if (particleEffects != nullptr) { particleEffects->render(); }
 
 	window.display();
 }

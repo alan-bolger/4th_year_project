@@ -171,7 +171,7 @@ void Pathfinding::handleUI()
 	}
 
 	// Render output window
-	ImGui::Begin("Render");
+	ImGui::Begin("Render##02");
 
 	// Draw content region for debug purposes
 	// The content region position is also used to map the
@@ -184,7 +184,7 @@ void Pathfinding::handleUI()
 	vMax.x += ImGui::GetWindowPos().x;
 	vMax.y += ImGui::GetWindowPos().y;
 
-	ImGui::GetForegroundDrawList()->AddRect(vMin, vMax, IM_COL32(255, 255, 0, 255));
+	// ImGui::GetForegroundDrawList()->AddRect(vMin, vMax, IM_COL32(255, 255, 0, 255));
 
 	// Handle ImGui window resize
 	ImVec2 currentWindowSize = ImGui::GetWindowSize();
