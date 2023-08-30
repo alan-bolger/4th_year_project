@@ -15,7 +15,11 @@ class Particle
 public:
 	bool alive;
 
-	Particle() { alive = false;	gen.seed(rd());	};
+	Particle(std::mt19937 &gen) : gen(gen)
+	{
+		alive = false; 
+	};
+
 	~Particle() { };
 	void setSpeed(float speed) { this->speed = speed; };
 	void setLifetime(sf::Time timeToLive) { this->timeToLive = timeToLive; };
@@ -24,8 +28,7 @@ public:
 
 protected:
 	const double PI = 3.141592653589793;
-	std::random_device rd;
-	std::mt19937 gen;
+	std::mt19937 &gen;
 	sf::Vector2f position;
 	sf::Vector2f velocity;
 	float speed = 5.0f;
@@ -33,7 +36,7 @@ protected:
 	float modifierTimeStep = 0.0f;
 	sf::Vector2f acceleration;
 	int modifierValue = 0;
-	sf::Time timeToLive = sf::seconds(2.0f);
+	sf::Time timeToLive;
 };
 
 #endif // !PARTICLE_H

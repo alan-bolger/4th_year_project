@@ -61,10 +61,12 @@ private:
 	std::vector<uint8_t> pixels;
 	std::vector<uint8_t> *pixelsPtr;
 	std::unique_ptr<ThreadPool> threadPool;
-	int threadAmount = 0;
+	std::random_device rd;
+	std::mt19937 gen;
+	int threadAmount;
 	int numOfParticles = 500000;
-	int particlesPerThread = 0;
-	int maxNumOfParticles = 1000000;
+	int particlesPerThread;
+	int maxNumOfParticles = 2000000;
 	sf::Vector2f startPosition;
 	ImVec2 renderWindowSize{ 1280, 720 };
 	std::vector<Generator*> threadGens;

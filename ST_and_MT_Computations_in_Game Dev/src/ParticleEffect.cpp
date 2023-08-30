@@ -27,9 +27,11 @@ ParticleEffects::ParticleEffects(sf::Time &dt) : dt(dt)
 
 		for (int n = 0; n < maxParticlesPerThread; ++n)
 		{
-			threadGens.at(i)->particlePool.push_back(new DefaultParticle());
+			threadGens.at(i)->particlePool.push_back(new DefaultParticle(gen));
 		}
 	}
+
+	std::cout << "Particle Size: " << static_cast<float>(sizeof(DefaultParticle)) / (1024.0f * 1024.0f) << " MB" << std::endl;
 }
 
 /// <summary>
@@ -90,6 +92,8 @@ void ParticleEffects::update(const sf::Time &dt)
 /// </summary>
 void ParticleEffects::handleUI()
 {
+	ImGui::PushItemWidth(0); 
+
 	if (ImGui::CollapsingHeader("Particles"))
 	{
 		// Particle properties
@@ -107,11 +111,11 @@ void ParticleEffects::handleUI()
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::InputFloat("Speed", &speed);
+		ImGui::SliderFloat("Speed", &speed, 10.0f, 500.0f);
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::InputFloat("Lifetime", &timeToLive);
+		ImGui::SliderFloat("Lifetime", &timeToLive, 0.05f, 100.0f);
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 

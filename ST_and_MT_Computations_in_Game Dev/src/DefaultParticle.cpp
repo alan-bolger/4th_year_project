@@ -3,7 +3,7 @@
 /// <summary>
 /// DefaultParticle constructor.
 /// </summary>
-DefaultParticle::DefaultParticle()
+DefaultParticle::DefaultParticle(std::mt19937 &gen) : Particle(gen)
 {
 	acceleration = sf::Vector2f(0.0f, 0.0f);
 }
@@ -15,9 +15,6 @@ DefaultParticle::~DefaultParticle()
 {
 
 }
-/// <summary>
-/// Generate a particle.
-/// </summary>
 
 /// <summary>
 /// Generate a particle.
@@ -31,11 +28,11 @@ void DefaultParticle::generate(sf::Vector2f startPosition, float speed, float ti
 	position = startPosition;
 
 	// Random angle between 0 and 359
-	std::uniform_real_distribution<double> angleDist(0.0, 360.0);
+	std::uniform_real_distribution<double> angleDist(0.1, 360.0);
 	angle = angleDist(gen) * (PI / 180.0);
 
-	// Random time between 4.0 and timeToLive
-	std::uniform_real_distribution<double> timeToLiveDist(4.0, timeToLive);
+	// Random time between 0.1 and timeToLive
+	std::uniform_real_distribution<double> timeToLiveDist(0.1, timeToLive);
 	this->timeToLive = sf::seconds(timeToLiveDist(gen));
 
 	// Set modifier step value (the amount the modifier changes on each frame)
@@ -46,7 +43,7 @@ void DefaultParticle::generate(sf::Vector2f startPosition, float speed, float ti
 	modifierTimeStep = 255 / (this->timeToLive.asSeconds() / (1.0f / 60.0f));
 	modifierValue = 255;
 
-	// Random speed between 20.0 and 40.0 units
+	// Random speed between 0.5 and speed
 	std::uniform_real_distribution<double> f_speedDist(0.5, speed);
 	this->speed = f_speedDist(gen);
 
