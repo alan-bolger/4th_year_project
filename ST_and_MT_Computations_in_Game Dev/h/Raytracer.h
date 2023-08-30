@@ -2,7 +2,8 @@
 // Raytracer.h
 // Raytracer.cpp
 // --------------------------------------------
-// Raytracer multi threaded test.
+// This class can render spheres using ray
+// tracing. 
 // --------------------------------------------
 
 #ifndef RAYTRACER_H

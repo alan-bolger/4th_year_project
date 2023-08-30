@@ -54,6 +54,9 @@
     <ClInclude Include="h\DefaultParticle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="h\Noise.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp">
@@ -99,6 +102,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\DefaultParticle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Noise.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

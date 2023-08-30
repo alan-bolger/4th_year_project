@@ -30,11 +30,6 @@ struct Generator
 
 	void update(int scrW, int threadAmount)
 	{
-		if ((numOfParticles / threadAmount) > particlePool.size())
-		{
-			numOfParticles = particlePool.size();
-		}
-
 		for (int i = 0; i < (numOfParticles / threadAmount); ++i)
 		{
 			if (particlePool[i]->alive == false)
@@ -49,11 +44,11 @@ struct Generator
 	}
 };
 
-class ParticleEffects
+class ParticleEffect
 {
 public:
-	ParticleEffects(sf::Time &dt);
-	~ParticleEffects();
+	ParticleEffect(sf::Time &dt);
+	~ParticleEffect();
 	void update(const sf::Time &dt);
 	void handleUI();
 

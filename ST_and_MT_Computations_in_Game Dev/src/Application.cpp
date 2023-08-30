@@ -85,7 +85,7 @@ void Application::update(const sf::Time &dt)
 
 	// Update anything that needs to be updated
 	if (pathfinding != nullptr) { pathfinding->update(dt); }
-	if (particleEffects != nullptr) { particleEffects->update(dt); }
+	if (particleEffect != nullptr) { particleEffect->update(dt); }
 
 	// Update and draw UI
 	handleUI();
@@ -125,7 +125,7 @@ void Application::handleUI()
 
 	if (raytracer != nullptr) {	raytracer->handleUI(); }
 	if (pathfinding != nullptr) { pathfinding->handleUI(); }
-	if (particleEffects != nullptr) { particleEffects->handleUI(); };
+	if (particleEffect != nullptr) { particleEffect->handleUI(); };
 
 	ImGui::End();
 }
@@ -160,9 +160,9 @@ void Application::loadTest(TestID testID)
 
 		case TestID::T03_PARTICLE_EFFECTS:
 		{
-			if (particleEffects == nullptr)
+			if (particleEffect == nullptr)
 			{
-				particleEffects = new ParticleEffects(timePerFrame);
+				particleEffect = new ParticleEffect(timePerFrame);
 			}
 
 			break;

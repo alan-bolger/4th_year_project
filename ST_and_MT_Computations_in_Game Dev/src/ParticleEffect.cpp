@@ -1,9 +1,9 @@
 #include "ParticleEffect.h"
 
 /// <summary>
-/// ParticleEffects constructor.
+/// ParticleEffect constructor.
 /// </summary>
-ParticleEffects::ParticleEffects(sf::Time &dt) : dt(dt)
+ParticleEffect::ParticleEffect(sf::Time &dt) : dt(dt)
 {
 	// This is where the particles will be rendered
 	renderTexture = std::make_unique<sf::Texture>();
@@ -36,9 +36,9 @@ ParticleEffects::ParticleEffects(sf::Time &dt) : dt(dt)
 }
 
 /// <summary>
-/// ParticleEffects destructor.
+/// ParticleEffect destructor.
 /// </summary>
-ParticleEffects::~ParticleEffects()
+ParticleEffect::~ParticleEffect()
 {
 
 }
@@ -48,7 +48,7 @@ ParticleEffects::~ParticleEffects()
 /// Update.
 /// </summary>
 /// <param name="dt">Delta time.</param>
-void ParticleEffects::update(const sf::Time &dt)
+void ParticleEffect::update(const sf::Time &dt)
 {
 	// Set every value to 0
 	std::fill(pixels.begin(), pixels.end(), 0);
@@ -91,7 +91,7 @@ void ParticleEffects::update(const sf::Time &dt)
 /// <summary>
 /// Update and draw all ImGui menus.
 /// </summary>
-void ParticleEffects::handleUI()
+void ParticleEffect::handleUI()
 {
 	ImGui::PushItemWidth(0); 
 
@@ -104,7 +104,9 @@ void ParticleEffects::handleUI()
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::InputInt("Amount", &numOfParticles);		
+		ImGui::InputInt("Amount", &numOfParticles);	
+
+		numOfParticles = std::clamp(numOfParticles, 500, 2000000);
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -116,7 +118,7 @@ void ParticleEffects::handleUI()
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::SliderFloat("Lifetime", &timeToLive, 0.05f, 100.0f);
+		ImGui::SliderFloat("Lifetime", &timeToLive, 0.5f, 100.0f);
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 

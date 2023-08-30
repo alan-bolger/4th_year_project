@@ -41,7 +41,7 @@ private:
 	bool exitApp;
 	Raytracer *raytracer = nullptr;
 	Pathfinding *pathfinding = nullptr;
-	ParticleEffects *particleEffects = nullptr;
+	ParticleEffect *particleEffect = nullptr;
 	sf::Time timePerFrame = sf::seconds(1.f / 60.0f);
 
 	void processEvents();
