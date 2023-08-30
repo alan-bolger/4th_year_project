@@ -1,4 +1,4 @@
-#include "ParticleEffects.h"
+#include "ParticleEffect.h"
 
 /// <summary>
 /// ParticleEffects constructor.
@@ -12,16 +12,20 @@ ParticleEffects::ParticleEffects(sf::Time &dt) : dt(dt)
 	pixelsPtr = &pixels;
 	scrW = 1280;
 
-	threadPool = std::make_unique<ThreadPool>(std::thread::hardware_concurrency() - 2);
+	threadAmount = std::thread::hardware_concurrency() - 1;
 
-	threadGens.resize(std::thread::hardware_concurrency() - 2);
+	threadPool = std::make_unique<ThreadPool>(threadAmount);
 
-	// Each thread has its own particle generator (in theory anyway)
+	threadGens.resize(threadAmount);
+
+	// Each thread has its own particle generator
+	int maxParticlesPerThread = maxNumOfParticles / threadAmount;
+
 	for (int i = 0; i < threadGens.size(); ++i)
 	{
-		threadGens.at(i) = new Generator(startPosition, this->dt, numOfParticles, pixelsPtr);
+		threadGens.at(i) = new Generator(startPosition, this->dt, numOfParticles, speed, timeToLive, pixelsPtr);
 
-		for (int n = 0; n < maxNumOfParticles; ++n)
+		for (int n = 0; n < maxParticlesPerThread; ++n)
 		{
 			threadGens.at(i)->particlePool.push_back(new DefaultParticle());
 		}
@@ -55,27 +59,27 @@ void ParticleEffects::update(const sf::Time &dt)
 		if (!multiThreaded)
 		{
 			// Single threaded
-			threadGens.at(i)->update(scrW);
+			threadGens.at(i)->update(scrW, threadAmount);
 		}
 		else
 		{
 			// Multi threaded
-			//auto f = threadPool->addJob([=]
-			//	{
-			//		threadGens.at(i)->update(scrW);
-			//	});
+			auto f = threadPool->addJob([=]
+				{
+					threadGens.at(i)->update(scrW, threadAmount);
+				});
 			
-			//futures.push_back(std::move(f));
+			futures.push_back(std::move(f));
 		}
 	}
 
 	if (multiThreaded)
 	{
 		// Wait for all threads to finish
-		//for (auto &future : futures)
-		//{
-		//	future.wait();
-		//}
+		for (auto &future : futures)
+		{
+			future.wait();
+		}
 	}
 
 	renderTexture->update(pixels.data());
@@ -99,6 +103,18 @@ void ParticleEffects::handleUI()
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
+		ImGui::SeparatorText("Particle Attributes");
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::InputFloat("Speed", &speed);
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::InputFloat("Lifetime", &timeToLive);
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
 		ImGui::SeparatorText("Window Coordinates");
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
@@ -108,6 +124,17 @@ void ParticleEffects::handleUI()
 
 		ImGui::Text(strX.c_str());
 		ImGui::Text(strY.c_str());
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::SeparatorText("Thread Usage");
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		static int sel = 0;
+		ImGui::RadioButton("Single-threaded", &sel, 0);
+		ImGui::RadioButton("Multi-threaded", &sel, 1);
+		sel == 0 ? multiThreaded = false : multiThreaded = true;
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 	}
@@ -149,8 +176,6 @@ void ParticleEffects::handleUI()
 		pixelsPtr = &pixels;
 		scrW = sizeX;
 	}
-
-	//main_RT->clear(sf::Color::Transparent);
 
 	// Get current mouse coordinates from ImGui window
 	ImVec2 mousePos = ImGui::GetMousePos();

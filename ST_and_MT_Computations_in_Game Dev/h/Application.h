@@ -16,7 +16,7 @@
 #include "imgui-SFML.h"
 #include "Raytracer.h"
 #include "Pathfinding.h"
-#include "ParticleEffects.h"
+#include "ParticleEffect.h"
 
 #include <SFML/Graphics.hpp>
 

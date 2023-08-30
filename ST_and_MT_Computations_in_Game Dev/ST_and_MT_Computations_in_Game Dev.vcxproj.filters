@@ -45,7 +45,7 @@
     <ClInclude Include="h\Bot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="h\ParticleEffects.h">
+    <ClInclude Include="h\ParticleEffect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="h\Particle.h">
@@ -95,7 +95,7 @@
     <ClCompile Include="src\Bot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ParticleEffects.cpp">
+    <ClCompile Include="src\ParticleEffect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\DefaultParticle.cpp">

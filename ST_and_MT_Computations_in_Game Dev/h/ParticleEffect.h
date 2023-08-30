@@ -1,12 +1,12 @@
 // --------------------------------------------
-// ParticleEffects.h
-// ParticleEffects.cpp
+// ParticleEffect.h
+// ParticleEffect.cpp
 // --------------------------------------------
-// Test particle effects on multiple threads.
+// Test particle effect on multiple threads.
 // --------------------------------------------
 
-#ifndef PARTICLEEFFECTS_H
-#define PARTICLEEFFECTS_H
+#ifndef PARTICLEEFFECT_H
+#define PARTICLEEFFECT_H
 
 #include <SFML/Graphics.hpp>
 
@@ -17,27 +17,29 @@
 
 struct Generator
 {
-	Generator(sf::Vector2f &startPosition, sf::Time &dt, int &numOfParticles, std::vector<uint8_t> *pixelsPtr) 
-		: startPosition(startPosition), dt(dt), numOfParticles(numOfParticles), pixelsPtr(pixelsPtr) { }
+	Generator(sf::Vector2f &startPosition, sf::Time &dt, int &numOfParticles, float &speed, float &timeToLive, std::vector<uint8_t> *pixelsPtr) 
+		: startPosition(startPosition), dt(dt), numOfParticles(numOfParticles), speed(speed), timeToLive(timeToLive), pixelsPtr(pixelsPtr) { }
 
-	std::vector<Particle*> particlePool;
 	sf::Vector2f &startPosition;
 	sf::Time &dt;
 	int &numOfParticles;
+	float &speed;
+	float &timeToLive;
 	std::vector<uint8_t> *pixelsPtr;
+	std::vector<Particle*> particlePool;	
 
-	void update(int scrW)
+	void update(int scrW, int threadAmount)
 	{
-		if (numOfParticles > particlePool.size())
+		if ((numOfParticles / threadAmount) > particlePool.size())
 		{
 			numOfParticles = particlePool.size();
 		}
 
-		for (int i = 0; i < numOfParticles; ++i)
+		for (int i = 0; i < (numOfParticles / threadAmount); ++i)
 		{
 			if (particlePool[i]->alive == false)
 			{
-				particlePool[i]->generate(startPosition);
+				particlePool[i]->generate(startPosition, speed, timeToLive);
 			}
 			else
 			{
@@ -59,8 +61,10 @@ private:
 	std::vector<uint8_t> pixels;
 	std::vector<uint8_t> *pixelsPtr;
 	std::unique_ptr<ThreadPool> threadPool;
-	int numOfParticles = 1000;
-	int maxNumOfParticles = 10000;
+	int threadAmount = 0;
+	int numOfParticles = 500000;
+	int particlesPerThread = 0;
+	int maxNumOfParticles = 1000000;
 	sf::Vector2f startPosition;
 	ImVec2 renderWindowSize{ 1280, 720 };
 	std::vector<Generator*> threadGens;
@@ -68,6 +72,8 @@ private:
 	std::unique_ptr<sf::Texture> renderTexture;
 	int scrW;
 	bool multiThreaded = false;
+	float speed = 180.0f;
+	float timeToLive = 20.0f;
 };
 
 #endif // !PARTICLEEFFECTS_H

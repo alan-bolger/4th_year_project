@@ -24,7 +24,7 @@
     <ClInclude Include="h\Bot.h" />
     <ClInclude Include="h\DefaultParticle.h" />
     <ClInclude Include="h\Particle.h" />
-    <ClInclude Include="h\ParticleEffects.h" />
+    <ClInclude Include="h\ParticleEffect.h" />
     <ClInclude Include="h\Pathfinding.h" />
     <ClInclude Include="h\Raytracer.h" />
     <ClInclude Include="h\ThreadPool.h" />
@@ -43,7 +43,7 @@
     <ClCompile Include="src\Bot.cpp" />
     <ClCompile Include="src\DefaultParticle.cpp" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\ParticleEffects.cpp" />
+    <ClCompile Include="src\ParticleEffect.cpp" />
     <ClCompile Include="src\Pathfinding.cpp" />
     <ClCompile Include="src\Raytracer.cpp" />
     <ClCompile Include="src\ThreadPool.cpp" />

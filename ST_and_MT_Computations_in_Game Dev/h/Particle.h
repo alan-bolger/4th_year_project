@@ -17,7 +17,9 @@ public:
 
 	Particle() { alive = false;	gen.seed(rd());	};
 	~Particle() { };
-	virtual void generate(sf::Vector2f startPosition) = 0;
+	void setSpeed(float speed) { this->speed = speed; };
+	void setLifetime(sf::Time timeToLive) { this->timeToLive = timeToLive; };
+	virtual void generate(sf::Vector2f startPosition, float speed, float timeToLive) = 0;
 	virtual void update(const sf::Time &dt, std::vector<uint8_t> &pixels, int scrW) = 0;
 
 protected:

@@ -17,7 +17,7 @@ class DefaultParticle : public Particle
 public:
 	DefaultParticle();
 	~DefaultParticle();
-	void generate(sf::Vector2f startPosition);
+	void generate(sf::Vector2f startPosition, float speed, float timeToLive);
 	void update(const sf::Time &dt, std::vector<uint8_t> &pixels, int scrW);
 };
 

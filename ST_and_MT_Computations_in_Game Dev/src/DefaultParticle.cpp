@@ -15,39 +15,44 @@ DefaultParticle::~DefaultParticle()
 {
 
 }
+/// <summary>
+/// Generate a particle.
+/// </summary>
 
 /// <summary>
 /// Generate a particle.
 /// </summary>
 /// <param name="startPosition">The starting position of the particle.</param>
-void DefaultParticle::generate(sf::Vector2f startPosition)
+/// <param name="speed">The max speed of the particle.</param>
+/// <param name="timeToLive">The max time for the particle to live.</param>
+void DefaultParticle::generate(sf::Vector2f startPosition, float speed, float timeToLive)
 {
 	// Set initial properties;
 	position = startPosition;
 
 	// Random angle between 0 and 359
-	std::uniform_real_distribution<double> angleDist(0.0, 359.0);
+	std::uniform_real_distribution<double> angleDist(0.0, 360.0);
 	angle = angleDist(gen) * (PI / 180.0);
 
-	// Random time between 4.0 and 20.0 seconds
-	std::uniform_real_distribution<double> timeToLiveDist(4.0, 20.0);
-	timeToLive = sf::seconds(timeToLiveDist(gen));
+	// Random time between 4.0 and timeToLive
+	std::uniform_real_distribution<double> timeToLiveDist(4.0, timeToLive);
+	this->timeToLive = sf::seconds(timeToLiveDist(gen));
 
 	// Set modifier step value (the amount the modifier changes on each frame)
 	// For this particle, the value starts at 255 and gets decreased on every frame
 	// The value should hit 0 just as the time to live timer runs out
 	// It is used to change the green and alpha values so the particle changes
 	// from yellow to red and fades out
-	modifierTimeStep = 255 / (timeToLive.asSeconds() / (1.0f / 60.0f));
+	modifierTimeStep = 255 / (this->timeToLive.asSeconds() / (1.0f / 60.0f));
 	modifierValue = 255;
 
 	// Random speed between 20.0 and 40.0 units
-	std::uniform_real_distribution<double> f_speedDist(20.0, 40.0);
-	speed = f_speedDist(gen);
+	std::uniform_real_distribution<double> f_speedDist(0.5, speed);
+	this->speed = f_speedDist(gen);
 
 	// Set initial velocity vector
-	velocity.x = speed * std::cos(angle);
-	velocity.y = speed * std::sin(angle);
+	velocity.x = this->speed * std::cos(angle);
+	velocity.y = this->speed * std::sin(angle);
 
 	alive = true; // It's alive!
 }
@@ -81,8 +86,6 @@ void DefaultParticle::update(const sf::Time &dt, std::vector<uint8_t> &pixels, i
 		modifierValue = 0;
 	}
 
-	// TODO: Get rid of particle rectangle, draw at pixel level instead
-	// TODO: Pass in pixel grid width for use here
 	int index = (static_cast<int>(position.y) * scrW + static_cast<int>(position.x)) * 4;
 
 	if (index >= 0 && index < pixels.size())
