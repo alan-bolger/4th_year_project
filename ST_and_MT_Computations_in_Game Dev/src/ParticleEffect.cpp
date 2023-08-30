@@ -5,17 +5,20 @@
 /// </summary>
 ParticleEffects::ParticleEffects(sf::Time &dt) : dt(dt)
 {
+	// This is where the particles will be rendered
 	renderTexture = std::make_unique<sf::Texture>();
 	renderTexture->create(1280, 720);
 
+	// Pixel buffer
 	pixels.resize(1280 * 720 * 4); // RGBA
 	pixelsPtr = &pixels;
 	scrW = 1280;
 
-	threadAmount = std::thread::hardware_concurrency() - 1;
+	threadAmount = std::thread::hardware_concurrency() - 1; // Subtract 1 to leave a spare thread
 
 	threadPool = std::make_unique<ThreadPool>(threadAmount);
 
+	// Amount of thread gen is equal to the amount of available threads
 	threadGens.resize(threadAmount);
 
 	// Each thread has its own particle generator
@@ -30,8 +33,6 @@ ParticleEffects::ParticleEffects(sf::Time &dt) : dt(dt)
 			threadGens.at(i)->particlePool.push_back(new DefaultParticle(gen));
 		}
 	}
-
-	std::cout << "Particle Size: " << static_cast<float>(sizeof(DefaultParticle)) / (1024.0f * 1024.0f) << " MB" << std::endl;
 }
 
 /// <summary>
