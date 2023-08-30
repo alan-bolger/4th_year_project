@@ -30,7 +30,6 @@ void Application::start()
 {
 	sf::Clock clock;
 	sf::Time timeSinceLastUpdate = sf::Time::Zero;
-	sf::Time timePerFrame = sf::seconds(1.f / 60.0f);
 
 	while (window.isOpen() && !exitApp)
 	{
@@ -86,6 +85,7 @@ void Application::update(const sf::Time &dt)
 
 	// Update anything that needs to be updated
 	if (pathfinding != nullptr) { pathfinding->update(dt); }
+	if (particleEffects != nullptr) { particleEffects->update(dt); }
 
 	// Update and draw UI
 	handleUI();
@@ -109,7 +109,7 @@ void Application::handleUI()
 
 		ImGui::PushItemWidth(-1);
 
-		const char *items[] = { "T01 - Raytracing", "T02 - Pathfinding", "T03 - TBC", "T04 - TBC", "T05 - TBC" };
+		const char *items[] = { "T01 - Raytracing", "T02 - Pathfinding", "T03 - Particle Effects", "T04 - TBC", "T05 - TBC" };
 		static int item_current = 0;
 		ImGui::ListBox("ListBox", &item_current, items, IM_ARRAYSIZE(items), 5);
 
@@ -125,6 +125,7 @@ void Application::handleUI()
 
 	if (raytracer != nullptr) {	raytracer->handleUI(); }
 	if (pathfinding != nullptr) { pathfinding->handleUI(); }
+	if (particleEffects != nullptr) { particleEffects->handleUI(); };
 
 	ImGui::End();
 }
@@ -152,6 +153,16 @@ void Application::loadTest(TestID testID)
 			if (pathfinding == nullptr)
 			{
 				pathfinding = new Pathfinding();
+			}
+
+			break;
+		}
+
+		case TestID::T03_PARTICLE_EFFECTS:
+		{
+			if (particleEffects == nullptr)
+			{
+				particleEffects = new ParticleEffects(timePerFrame);
 			}
 
 			break;

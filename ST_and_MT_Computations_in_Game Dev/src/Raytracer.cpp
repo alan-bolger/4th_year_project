@@ -250,7 +250,7 @@ void Raytracer::handleUI()
     }
 
 	// Render output window
-	ImGui::Begin("Render");
+	ImGui::Begin("Render##01");
 
     renderTexture->update(pixelArray.data());
 	ImGui::Image(*renderTexture);

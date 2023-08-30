@@ -16,13 +16,15 @@
 #include "imgui-SFML.h"
 #include "Raytracer.h"
 #include "Pathfinding.h"
+#include "ParticleEffect.h"
 
 #include <SFML/Graphics.hpp>
 
 enum class TestID
 {
 	T01_RAYTRACER = 0,
-	T02_PATHFINDING
+	T02_PATHFINDING,
+	T03_PARTICLE_EFFECTS
 };
 
 class Application
@@ -39,6 +41,8 @@ private:
 	bool exitApp;
 	Raytracer *raytracer = nullptr;
 	Pathfinding *pathfinding = nullptr;
+	ParticleEffects *particleEffects = nullptr;
+	sf::Time timePerFrame = sf::seconds(1.f / 60.0f);
 
 	void processEvents();
 	void update(const sf::Time &dt);

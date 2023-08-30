@@ -18,7 +18,7 @@ Pathfinding::Pathfinding()
 	tileMap_RT.create(tileWidth * mapWidth, tileHeight * mapHeight);
 
 	windowView.setSize(tileWidth * mapWidth, tileHeight * mapHeight);
-	windowView.setCenter((tileWidth * mapWidth) / 2, (tileHeight * mapHeight) / 2);
+	windowView.setCenter(128 * 16, 128 * 16);
 
 	main_RT = std::make_unique<sf::RenderTexture>();
 	main_RT->create(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -171,7 +171,7 @@ void Pathfinding::handleUI()
 	}
 
 	// Render output window
-	ImGui::Begin("Render");
+	ImGui::Begin("Render##02");
 
 	// Draw content region for debug purposes
 	// The content region position is also used to map the
@@ -184,7 +184,7 @@ void Pathfinding::handleUI()
 	vMax.x += ImGui::GetWindowPos().x;
 	vMax.y += ImGui::GetWindowPos().y;
 
-	ImGui::GetForegroundDrawList()->AddRect(vMin, vMax, IM_COL32(255, 255, 0, 255));
+	// ImGui::GetForegroundDrawList()->AddRect(vMin, vMax, IM_COL32(255, 255, 0, 255));
 
 	// Handle ImGui window resize
 	ImVec2 currentWindowSize = ImGui::GetWindowSize();
@@ -315,7 +315,7 @@ void Pathfinding::handleUI()
 }
 
 /// <summary>
-/// Draws the map and shows connections, bots, paths, etc.
+/// Draws the map and shows bots, paths, etc.
 /// </summary>
 void Pathfinding::render()
 {
@@ -331,11 +331,10 @@ void Pathfinding::render()
 
 	if (showDebugMap)
 	{
-		// Draw nodes and connections
+		// Draw nodes
 		sf::RectangleShape nodeSquare;
 		nodeSquare.setSize(sf::Vector2f(tileWidth / 2, tileHeight / 2));
 
-		// Draw nodes
 		for (int x = 0; x < mapWidth; ++x)
 		{
 			for (int y = 0; y < mapHeight; ++y)
