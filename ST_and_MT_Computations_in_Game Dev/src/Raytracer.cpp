@@ -49,152 +49,155 @@ void Raytracer::handleUI()
 {
     ImGui::PushItemWidth(0);
 
-    if (ImGui::CollapsingHeader("Output"))
+    if (ImGui::CollapsingHeader("Raytracer"))
     {
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::SeparatorText("Render Dimensions");
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::InputInt("Width##01", &renderW);
-        ImGui::InputInt("Height##02", &renderH);
-
-        // Limit max to 4k resolution (3840 x 2160)
-        renderW = std::clamp(renderW, 128, 3840);
-        renderH = std::clamp(renderH, 128, 2160);
-
-        // Render tile options
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::SeparatorText("Tile Dimensions");
-        ImGui::TextWrapped("This only applies to multi-threaded rendering");
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::InputInt("Width##03", &renderTileW);
-        ImGui::InputInt("Height##04", &renderTileH);
-
-        // Limit max to 256 x 256
-        renderTileW = std::clamp(renderTileW, 16, 256);
-        renderTileH = std::clamp(renderTileH, 16, 256);
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f)); 
-    }
-
-    if (ImGui::CollapsingHeader("Editing"))
-    {
-        ImGui::SeparatorText("Camera");
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::DragFloat("X", &rayOrigin.x);
-        ImGui::DragFloat("Y", &rayOrigin.y);
-        ImGui::DragFloat("Z", &rayOrigin.z);
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::ColorEdit3("Background Colour", backgroundColour.get());
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::SeparatorText("Edit Sphere");
-        ImGui::TextWrapped("Select the sphere to edit, then click the 'OPEN EDITOR' button to display the sphere editor if it's not already visible");
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        // Display all spheres in the scene in a selectable list
-        for (int i = 0; i < spheres.size(); i++)
+        if (ImGui::CollapsingHeader("Output"))
         {
-            std::string text = "Sphere " + std::to_string(i);
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            ImGui::SeparatorText("Render Dimensions");
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            ImGui::InputInt("Width##01", &renderW);
+            ImGui::InputInt("Height##02", &renderH);
+
+            // Limit max to 4k resolution (3840 x 2160)
+            renderW = std::clamp(renderW, 128, 3840);
+            renderH = std::clamp(renderH, 128, 2160);
+
+            // Render tile options
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            ImGui::SeparatorText("Tile Dimensions");
+            ImGui::TextWrapped("This only applies to multi-threaded rendering");
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            ImGui::InputInt("Width##03", &renderTileW);
+            ImGui::InputInt("Height##04", &renderTileH);
+
+            // Limit max to 256 x 256
+            renderTileW = std::clamp(renderTileW, 16, 256);
+            renderTileH = std::clamp(renderTileH, 16, 256);
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+        }
+
+        if (ImGui::CollapsingHeader("Editing"))
+        {
+            ImGui::SeparatorText("Camera");
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            ImGui::DragFloat("X", &rayOrigin.x);
+            ImGui::DragFloat("Y", &rayOrigin.y);
+            ImGui::DragFloat("Z", &rayOrigin.z);
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            ImGui::ColorEdit3("Background Colour", backgroundColour.get());
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            ImGui::SeparatorText("Edit Sphere");
+            ImGui::TextWrapped("Select the sphere to edit, then click the 'OPEN EDITOR' button to display the sphere editor if it's not already visible");
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            // Display all spheres in the scene in a selectable list
+            for (int i = 0; i < spheres.size(); i++)
+            {
+                std::string text = "Sphere " + std::to_string(i);
+
+                ImGui::Separator();
+
+                if (ImGui::Selectable(text.c_str(), i == activeSphereIndex))
+                {
+                    // If the user clicks on the sphere, set it as the active sphere
+                    activeSphereIndex = i;
+                }
+            }
 
             ImGui::Separator();
 
-            if (ImGui::Selectable(text.c_str(), i == activeSphereIndex))
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            if (ImGui::Button("ADD SPHERE", ImVec2(110, 24)))
             {
-                // If the user clicks on the sphere, set it as the active sphere
-                activeSphereIndex = i;
+                spheres.push_back(Sphere(Vec3f(0, 0, 0), 3, Vec3f(0.5, 0.5, 0.5), 0, 0, 0));
             }
-        }
 
-        ImGui::Separator();
+            ImGui::SameLine();
 
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        if (ImGui::Button("ADD SPHERE", ImVec2(110, 24)))
-        {
-            spheres.push_back(Sphere(Vec3f(0, 0, 0), 3, Vec3f(0.5, 0.5, 0.5), 0, 0, 0));
-        }
-
-        ImGui::SameLine();
-
-        if (ImGui::Button("DELETE SPHERE", ImVec2(110, 24)))
-        {
-            if (spheres.size() > 0)
+            if (ImGui::Button("DELETE SPHERE", ImVec2(110, 24)))
             {
-                if (activeSphereIndex < spheres.size())
+                if (spheres.size() > 0)
                 {
-                    auto itr = spheres.begin() + activeSphereIndex;
-                    spheres.erase(itr);
-                }
+                    if (activeSphereIndex < spheres.size())
+                    {
+                        auto itr = spheres.begin() + activeSphereIndex;
+                        spheres.erase(itr);
+                    }
 
-                if (spheres.empty())
-                {
-                    activeSphereIndex = -1;
+                    if (spheres.empty())
+                    {
+                        activeSphereIndex = -1;
+                    }
                 }
             }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("OPEN EDITOR", ImVec2(110, 24)))
+            {
+                sphereEditWindowOpen = true;
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
         }
 
-        ImGui::SameLine();
-
-        if (ImGui::Button("OPEN EDITOR", ImVec2(110, 24)))
+        if (ImGui::CollapsingHeader("Render"))
         {
-            sphereEditWindowOpen = true;
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            ImGui::TextWrapped("Increasing max bounces will increase rendering time, but will produce higher quality renders");
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            ImGui::InputInt("Max Bounces", &maxBounces);
+
+            // Limit to a maximum of 128 potential bounces
+            maxBounces = std::clamp(maxBounces, 1, 128);
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            ImGui::SeparatorText("Thread Usage");
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            static int sel = 1;
+            ImGui::RadioButton("Single-threaded", &sel, 0);
+            ImGui::RadioButton("Multi-threaded", &sel, 1);
+            sel == 0 ? multiThreaded = false : multiThreaded = true;
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            ImGui::Separator();
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            ImGui::TextWrapped("Any changes made will only be visible once the scene has been rendered");
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            if (ImGui::Button("RENDER", ImVec2(60, 24)))
+            {
+                render(multiThreaded);
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
         }
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-    }
-
-    if (ImGui::CollapsingHeader("Render"))
-    {
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::TextWrapped("Increasing max bounces will increase rendering time, but will produce higher quality renders");
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::InputInt("Max Bounces", &maxBounces);
-
-        // Limit to a maximum of 128 potential bounces
-        maxBounces = std::clamp(maxBounces, 1, 128);
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::SeparatorText("Thread Usage");
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        static int sel = 1;
-        ImGui::RadioButton("Single-threaded", &sel, 0);
-        ImGui::RadioButton("Multi-threaded", &sel, 1);
-        sel == 0 ? multiThreaded = false : multiThreaded = true;
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::Separator();
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::TextWrapped("Any changes made will only be visible once the scene has been rendered");
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        if (ImGui::Button("RENDER", ImVec2(60, 24)))
-        {
-            render(multiThreaded);
-        }
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
     }
 
     // Render sphere editor window if it's open
@@ -250,7 +253,7 @@ void Raytracer::handleUI()
     }
 
 	// Render output window
-	ImGui::Begin("Render##01");
+	ImGui::Begin("Raytracer");
 
     renderTexture->update(pixelArray.data());
 	ImGui::Image(*renderTexture);
@@ -297,12 +300,9 @@ void Raytracer::render(bool multiThreaded)
 	}
 	else
 	{
-		// This renders using a single thread (this thread)
+		// This renders using a single thread (this thread, the main thread)
         // The entire image is rendered in one sweep
-        threadPool->addJob([=]
-            {
-                renderSection({ 0, 0 }, { renderW, renderH });
-            });
+        renderSection({ 0, 0 }, { renderW, renderH });
 	}
 }
 

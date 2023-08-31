@@ -20,6 +20,11 @@ Application::Application() : window{ sf::VideoMode{ SCREEN_WIDTH, SCREEN_HEIGHT,
 /// </summary>
 Application::~Application()
 {
+	if (raytracer) { delete raytracer; }
+	if (pathfinding) { delete pathfinding; }
+	if (particleEffect) { delete particleEffect; }
+	if (terrainGenerator) { delete terrainGenerator; }
+
 	ImGui::SFML::Shutdown();
 }
 
@@ -85,7 +90,7 @@ void Application::update(const sf::Time &dt)
 
 	// Update anything that needs to be updated
 	if (pathfinding != nullptr) { pathfinding->update(dt); }
-	if (particleEffects != nullptr) { particleEffects->update(dt); }
+	if (particleEffect != nullptr) { particleEffect->update(dt); }
 
 	// Update and draw UI
 	handleUI();
@@ -109,7 +114,7 @@ void Application::handleUI()
 
 		ImGui::PushItemWidth(-1);
 
-		const char *items[] = { "T01 - Raytracing", "T02 - Pathfinding", "T03 - Particle Effects", "T04 - TBC", "T05 - TBC" };
+		const char *items[] = { "T01 - Raytracing", "T02 - Pathfinding", "T03 - Particle Effects", "T04 - Terrain Generator" };
 		static int item_current = 0;
 		ImGui::ListBox("ListBox", &item_current, items, IM_ARRAYSIZE(items), 5);
 
@@ -125,7 +130,8 @@ void Application::handleUI()
 
 	if (raytracer != nullptr) {	raytracer->handleUI(); }
 	if (pathfinding != nullptr) { pathfinding->handleUI(); }
-	if (particleEffects != nullptr) { particleEffects->handleUI(); };
+	if (particleEffect != nullptr) { particleEffect->handleUI(); }
+	if (terrainGenerator != nullptr) { terrainGenerator->handleUI(); }
 
 	ImGui::End();
 }
@@ -158,11 +164,21 @@ void Application::loadTest(TestID testID)
 			break;
 		}
 
-		case TestID::T03_PARTICLE_EFFECTS:
+		case TestID::T03_PARTICLE_EFFECT:
 		{
-			if (particleEffects == nullptr)
+			if (particleEffect == nullptr)
 			{
-				particleEffects = new ParticleEffects(timePerFrame);
+				particleEffect = new ParticleEffect(timePerFrame);
+			}
+
+			break;
+		}
+
+		case TestID::T04_TERRAIN_GENERATOR:
+		{
+			if (terrainGenerator == nullptr)
+			{
+				terrainGenerator = new TerrainGenerator();
 			}
 
 			break;
