@@ -50,6 +50,8 @@ ParticleEffect::~ParticleEffect()
 /// <param name="dt">Delta time.</param>
 void ParticleEffect::update(const sf::Time &dt)
 {
+	clTimer += clock.restart();
+
 	// Set every value to 0
 	std::fill(pixels.begin(), pixels.end(), 0);
 
@@ -61,20 +63,20 @@ void ParticleEffect::update(const sf::Time &dt)
 	// Update particles
 	if (!multiThreaded)
 	{
-		std::cout << "Single Threaded" << std::endl;
-
 		for (int i = 0; i < threadGens.size(); ++i)
 		{
 			// Single threaded
 			threadGens.at(i)->update(scrW, threadAmount);
 		}
 
-		timer.stop();
+		if (clTimer > sf::seconds(0.5f))
+		{
+			ms = timer.stop();
+			clTimer = sf::Time::Zero;
+		}
 	}
 	else
 	{
-		std::cout << "Multi Threaded" << std::endl;
-
 		for (int i = 0; i < threadGens.size(); ++i)
 		{
 			// Multi threaded
@@ -95,7 +97,11 @@ void ParticleEffect::update(const sf::Time &dt)
 			future.wait();
 		}
 
-		timer.stop();
+		if (clTimer > sf::seconds(0.5f))
+		{
+			ms = timer.stop();
+			clTimer = sf::Time::Zero;
+		}
 	}
 
 	renderTexture->update(pixels.data());
@@ -108,34 +114,49 @@ void ParticleEffect::handleUI()
 {
 	ImGui::PushItemWidth(0); 
 
-	if (ImGui::CollapsingHeader("Particle Effect"))
+	if (ImGui::CollapsingHeader("Particle Effect##006"))
 	{
+		// Instructions
+		if (ImGui::CollapsingHeader("Instructions##007"))
+		{
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::Text("Use the mouse to move the particles");
+			ImGui::Text("around on the screen. Some strange");
+			ImGui::Text("behaviour can be seen sometimes when");
+			ImGui::Text("modifying the particle count, but this");
+			ImGui::Text("stops once the particles in the pool");
+			ImGui::Text("have been fully reset.");
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+		}
+
 		// Particle properties
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::SeparatorText("Number of Particles");
+		ImGui::SeparatorText("Number of Particles##008");
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::InputInt("Amount", &numOfParticles);	
+		ImGui::InputInt("Amount##009", &numOfParticles);	
 
 		numOfParticles = std::clamp(numOfParticles, 500, 2000000);
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::SeparatorText("Particle Attributes");
+		ImGui::SeparatorText("Particle Attributes##010");
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::SliderFloat("Speed", &speed, 10.0f, 500.0f);
+		ImGui::SliderFloat("Speed##011", &speed, 10.0f, 500.0f);
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::SliderFloat("Lifetime", &timeToLive, 0.5f, 100.0f);
+		ImGui::SliderFloat("Lifetime##012", &timeToLive, 0.5f, 100.0f);
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::SeparatorText("Window Coordinates");
+		ImGui::SeparatorText("Window Coordinates##013");
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -147,23 +168,37 @@ void ParticleEffect::handleUI()
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::SeparatorText("Thread Usage");
+		if (ImGui::CollapsingHeader("Threads##014"))
+		{
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+			ImGui::SeparatorText("Thread Usage##015");
 
-		static int sel = 0;
-		ImGui::RadioButton("Single-threaded", &sel, 0);
-		ImGui::RadioButton("Multi-threaded", &sel, 1);
-		sel == 0 ? multiThreaded = false : multiThreaded = true;
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+			static int sel_sd6 = 0;
+			ImGui::RadioButton("Single-threaded##016", &sel_sd6, 0);
+			ImGui::RadioButton("Multi-threaded##017", &sel_sd6, 1);
+			sel_sd6 == 0 ? multiThreaded = false : multiThreaded = true;
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::SeparatorText("Particle Update Time##018");
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			std::string milliSecs = "Frame Time: " + std::to_string(ms) + "ms";
+
+			ImGui::Text(milliSecs.c_str());
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+		}
 	}
 
 	// Render output window
-	ImGui::Begin("Particle Effect");
+	ImGui::Begin("Particle Effect##019");
 
-	// Draw content region for debug purposes
-	// The content region position is also used to map the
+	// The content region position used to map the
 	// mouse position correctly
 	ImVec2 vMin = ImGui::GetWindowContentRegionMin();
 	ImVec2 vMax = ImGui::GetWindowContentRegionMax();
@@ -172,8 +207,6 @@ void ParticleEffect::handleUI()
 	vMin.y += ImGui::GetWindowPos().y;
 	vMax.x += ImGui::GetWindowPos().x;
 	vMax.y += ImGui::GetWindowPos().y;
-
-	ImGui::GetForegroundDrawList()->AddRect(vMin, vMax, IM_COL32(255, 255, 0, 255));
 
 	// Handle ImGui window resize
 	ImVec2 currentWindowSize = ImGui::GetWindowSize();

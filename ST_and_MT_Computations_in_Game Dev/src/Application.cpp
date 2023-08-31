@@ -102,9 +102,9 @@ void Application::update(const sf::Time &dt)
 void Application::handleUI()
 {
 	// Select and load a test
-	ImGui::Begin("Test Inspector");
+	ImGui::Begin("Test Inspector##001");
 
-	if (ImGui::CollapsingHeader("Load Test"))
+	if (ImGui::CollapsingHeader("Load Test##002"))
 	{
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -114,13 +114,13 @@ void Application::handleUI()
 
 		ImGui::PushItemWidth(-1);
 
-		const char *items[] = { "T01 - Raytracing", "T02 - Pathfinding", "T03 - Particle Effects", "T04 - Terrain Generator" };
+		const char *items[] = { "T01 - Raytracing", "T02 - Pathfinding", "T03 - Particle Effect", "T04 - Terrain Generator" };
 		static int item_current = 0;
-		ImGui::ListBox("ListBox", &item_current, items, IM_ARRAYSIZE(items), 5);
+		ImGui::ListBox("ListBox##004", &item_current, items, IM_ARRAYSIZE(items), 4);
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		if (ImGui::Button("LOAD TEST", ImVec2(100, 24)))
+		if (ImGui::Button("Load Test##005", ImVec2(100, 24)))
 		{
 			loadTest(static_cast<TestID>(item_current));
 		}
@@ -142,6 +142,7 @@ void Application::handleUI()
 /// <param name="testID">The test ID.</param>
 void Application::loadTest(TestID testID)
 {
+	// This is a bit clunky, but sure it is what it is
 	switch (testID)
 	{
 		case TestID::T01_RAYTRACER:

@@ -17,7 +17,7 @@
 
 #include <SFML/Graphics.hpp>
 
-static const sf::Color MAP_PALETTE[10] =
+static const sf::Color EARTH[10] =
 {
 	sf::Color(0, 102, 255, 255),
 	sf::Color(55, 125, 235, 255),
@@ -29,6 +29,34 @@ static const sf::Color MAP_PALETTE[10] =
 	sf::Color(125, 200, 125, 255),
 	sf::Color(150, 225, 150, 255),
 	sf::Color(200, 255, 200, 255)
+};
+
+static const sf::Color MARS[10] =
+{
+	sf::Color(212, 50, 0, 255),
+	sf::Color(212, 70, 15, 255),
+	sf::Color(235, 90, 30, 255),
+	sf::Color(235, 110, 50, 255),
+	sf::Color(235, 130, 70, 255),
+	sf::Color(235, 150, 90, 255),
+	sf::Color(235, 170, 110, 255),
+	sf::Color(235, 190, 130, 255),
+	sf::Color(235, 210, 150, 255),
+	sf::Color(235, 230, 170, 255)
+};
+
+static const sf::Color MOON[10] =
+{
+	sf::Color(50, 50, 50, 255),
+	sf::Color(60, 60, 60, 255),
+	sf::Color(70, 70, 70, 255),
+	sf::Color(80, 80, 80, 255),
+	sf::Color(90, 90, 90, 255),
+	sf::Color(100, 100, 100, 255),
+	sf::Color(110, 110, 110, 255),
+	sf::Color(120, 120, 120, 255),
+	sf::Color(130, 130, 130, 255),
+	sf::Color(140, 140, 140, 255)
 };
 
 class TerrainGenerator
@@ -48,14 +76,17 @@ private:
 	int mapWidth = 960;
 	int mapHeight = 960;
 	int seed = 0;
+	int enteredSeed = 0;
 	bool multiThreaded = false;
 	std::unique_ptr<sf::Texture> texture;
-	int waterHeight = 0;
 	std::random_device rd;
 	std::mt19937 mt;
+	bool randomiseMap = false;
 	std::vector<uint8_t> pixelArray;
 	ImVec2 renderWindowSize{ 1280, 720 };
 	int availableThreads = 0;
+	double ms;
+	int currentTerrainID = 0;
 };
 
 #endif // !TERRAINGENERATOR_H

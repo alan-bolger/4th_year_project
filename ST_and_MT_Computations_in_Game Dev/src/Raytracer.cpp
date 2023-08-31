@@ -17,7 +17,7 @@ Raytracer::Raytracer(int w, int h) : renderW(w), renderH(h)
     // Set startup defaults
     renderTileW = 64;
     renderTileH = 64;
-    maxBounces = 5;
+    maxBounces = 25;
     backgroundColour = 1.0f;
 
     // This sphere acts as the ground
@@ -51,6 +51,22 @@ void Raytracer::handleUI()
 
     if (ImGui::CollapsingHeader("Raytracer"))
     {
+        // Instructions
+        if (ImGui::CollapsingHeader("Instructions##041"))
+        {
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            ImGui::Text("This raytracer renders a simple");
+            ImGui::Text("scene containing a few spheres of");
+            ImGui::Text("various materials. Spheres can also");
+            ImGui::Text("be added and deleted. Aplologies");
+            ImGui::Text("for the not-so-ideal editing system.");
+            ImGui::Text("Also, you must re-render the scene to");
+            ImGui::Text("reflect and editing changes made.");
+
+            ImGui::Dummy(ImVec2(0.0f, 8.0f));
+        }
+
         if (ImGui::CollapsingHeader("Output"))
         {
             ImGui::Dummy(ImVec2(0.0f, 8.0f));
@@ -59,8 +75,8 @@ void Raytracer::handleUI()
 
             ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-            ImGui::InputInt("Width##01", &renderW);
-            ImGui::InputInt("Height##02", &renderH);
+            ImGui::InputInt("Width##042", &renderW);
+            ImGui::InputInt("Height##043", &renderH);
 
             // Limit max to 4k resolution (3840 x 2160)
             renderW = std::clamp(renderW, 128, 3840);
@@ -74,8 +90,8 @@ void Raytracer::handleUI()
 
             ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-            ImGui::InputInt("Width##03", &renderTileW);
-            ImGui::InputInt("Height##04", &renderTileH);
+            ImGui::InputInt("Width##044", &renderTileW);
+            ImGui::InputInt("Height##045", &renderTileH);
 
             // Limit max to 256 x 256
             renderTileW = std::clamp(renderTileW, 16, 256);
@@ -123,14 +139,14 @@ void Raytracer::handleUI()
 
             ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-            if (ImGui::Button("ADD SPHERE", ImVec2(110, 24)))
+            if (ImGui::Button("Add Sphere", ImVec2(110, 24)))
             {
                 spheres.push_back(Sphere(Vec3f(0, 0, 0), 3, Vec3f(0.5, 0.5, 0.5), 0, 0, 0));
             }
 
             ImGui::SameLine();
 
-            if (ImGui::Button("DELETE SPHERE", ImVec2(110, 24)))
+            if (ImGui::Button("Delete Sphere", ImVec2(110, 24)))
             {
                 if (spheres.size() > 0)
                 {
@@ -149,7 +165,7 @@ void Raytracer::handleUI()
 
             ImGui::SameLine();
 
-            if (ImGui::Button("OPEN EDITOR", ImVec2(110, 24)))
+            if (ImGui::Button("Open Editor", ImVec2(110, 24)))
             {
                 sphereEditWindowOpen = true;
             }
@@ -157,7 +173,7 @@ void Raytracer::handleUI()
             ImGui::Dummy(ImVec2(0.0f, 8.0f));
         }
 
-        if (ImGui::CollapsingHeader("Render"))
+        if (ImGui::CollapsingHeader("Render##055"))
         {
             ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -172,31 +188,40 @@ void Raytracer::handleUI()
 
             ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-            ImGui::SeparatorText("Thread Usage");
-
-            ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-            static int sel = 1;
-            ImGui::RadioButton("Single-threaded", &sel, 0);
-            ImGui::RadioButton("Multi-threaded", &sel, 1);
-            sel == 0 ? multiThreaded = false : multiThreaded = true;
-
-            ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-            ImGui::Separator();
-
-            ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
             ImGui::TextWrapped("Any changes made will only be visible once the scene has been rendered");
 
             ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-            if (ImGui::Button("RENDER", ImVec2(60, 24)))
+            if (ImGui::Button("Render##56", ImVec2(60, 24)))
             {
                 render(multiThreaded);
             }
 
             ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+            if (ImGui::CollapsingHeader("Threads##057"))
+            {
+                ImGui::SeparatorText("Thread Usage##058");
+
+                ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+                static int sel_87t = 0;
+                ImGui::RadioButton("Single-threaded##059", &sel_87t, 0);
+                ImGui::RadioButton("Multi-threaded##060", &sel_87t, 1);
+                sel_87t == 0 ? multiThreaded = false : multiThreaded = true;
+
+                ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+                ImGui::SeparatorText("Execution Time##061");
+
+                ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+                std::string milliSecs = "Time: " + std::to_string(ms) + "ms";
+
+                ImGui::Text(milliSecs.c_str());
+
+                ImGui::Dummy(ImVec2(0.0f, 8.0f));
+            }
         }
     }
 
@@ -242,7 +267,7 @@ void Raytracer::handleUI()
 
         ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-        if (ImGui::Button("RENDER", ImVec2(60, 24)))
+        if (ImGui::Button("Render##064", ImVec2(60, 24)))
         {
             render(multiThreaded);
         }
@@ -253,7 +278,7 @@ void Raytracer::handleUI()
     }
 
 	// Render output window
-	ImGui::Begin("Raytracer");
+	ImGui::Begin("Raytracer##077");
 
     renderTexture->update(pixelArray.data());
 	ImGui::Image(*renderTexture);
@@ -282,8 +307,6 @@ void Raytracer::render(bool multiThreaded)
 
 	if (multiThreaded)
     {
-        std::cout << "Multi threaded" << std::endl;
-
         int numOfSectionsW = (renderW / renderTileW) + 1;
         int numOfSectionsH = (renderH / renderTileH) + 1;
 
@@ -310,13 +333,11 @@ void Raytracer::render(bool multiThreaded)
 	}
 	else
 	{
-        std::cout << "Single Threaded" << std::endl;
-
 		// This renders using a single thread (this thread, the main thread)
         // The entire image is rendered in one sweep
         renderSection({ 0, 0 }, { renderW, renderH });
 
-        timer.stop();
+        ms = timer.stop();
 	}
 
     if (multiThreaded)
@@ -327,7 +348,7 @@ void Raytracer::render(bool multiThreaded)
             future.wait();
         }
 
-        timer.stop();
+        ms = timer.stop();
     }
 }
 

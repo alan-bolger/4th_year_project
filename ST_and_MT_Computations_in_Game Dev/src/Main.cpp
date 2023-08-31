@@ -1,5 +1,5 @@
 // --------------------------------------------
-// | Main.cpp								  |
+// Main.cpp
 // --------------------------------------------
 
 #include "Application.h"
@@ -11,8 +11,10 @@
 /// All code by Alan Bolger unless otherwise stated.
 /// 
 /// Student ID: C00232036
+/// 
 /// Date started: 20.07.2023
-/// Date finished: TBC
+/// Date finished: 31.08.2023
+/// 
 /// </summary>
 /// <returns>0 for successful exit.</returns>
 int main()

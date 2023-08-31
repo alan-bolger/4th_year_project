@@ -82,7 +82,7 @@ void TerrainGenerator::generate(int width, int height, int seed, std::vector<flo
 	{
 		generateSection({ 0, 0 }, { mapWidth, mapHeight });
 
-		timer.stop();
+		ms = timer.stop();
 	}
 
 	if (multiThreaded)
@@ -93,7 +93,7 @@ void TerrainGenerator::generate(int width, int height, int seed, std::vector<flo
 			future.wait();
 		}
 
-		timer.stop();
+		ms = timer.stop();
 	}
 
 	float min = 0;
@@ -199,6 +199,22 @@ void TerrainGenerator::handleUI()
 
 	if (ImGui::CollapsingHeader("Terrain Generator"))
 	{
+		// Instructions
+		if (ImGui::CollapsingHeader("Instructions##068"))
+		{
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::Text("Click the 'Generate Map' button to");
+			ImGui::Text("create a randomised terrain map.");
+			ImGui::Text("When generating a map directly after");
+			ImGui::Text("switching from multi threaded to");
+			ImGui::Text("single threaded, only a portion of the");
+			ImGui::Text("map may render. Re-generate the map to");
+			ImGui::Text("fix this.");
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+		}
+
 		// Particle properties
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -206,21 +222,43 @@ void TerrainGenerator::handleUI()
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::InputInt("Width", &mapWidth);
-		ImGui::InputInt("Height", &mapHeight);
+		ImGui::InputInt("Width##069", &mapWidth);
+		ImGui::InputInt("Height##070", &mapHeight);
 
 		mapWidth = std::clamp(mapWidth, 32, 16384);
 		mapHeight = std::clamp(mapHeight, 32, 16384);
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		std::string strX = "Seed Used: " + std::to_string(seed);
+		ImGui::PushItemWidth(-1);
 
-		ImGui::Text(strX.c_str());
+		ImGui::SeparatorText("Terrain Type");
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::SliderInt("Water Height", &waterHeight, 0, 9);
+		const char *terrains[] = { "Earth", "Mars", "Moon" };
+		ImGui::ListBox("ListBox", &currentTerrainID, terrains, IM_ARRAYSIZE(terrains), 3);
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::PushItemWidth(0);
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		std::string str = "Last Used Seed: " + std::to_string(seed);
+
+		ImGui::Text(str.c_str());
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::InputInt("Seed", &enteredSeed);
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		static int sel_4hb = 1;
+		ImGui::RadioButton("Use Seed", &sel_4hb, 0);
+		ImGui::RadioButton("Random Map", &sel_4hb, 1);
+		sel_4hb == 0 ? randomiseMap = false : randomiseMap = true;
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -229,28 +267,52 @@ void TerrainGenerator::handleUI()
 			texture = std::make_unique<sf::Texture>();
 			texture->create(mapWidth, mapHeight);
 
-			std::uniform_int_distribution<int> dist(0, 65535);
-			seed = dist(mt);
-			generate(mapWidth, mapHeight, seed, heightMap);
-			render();
+			if (randomiseMap)
+			{
+				std::uniform_int_distribution<int> dist(0, 65535);
+				seed = dist(mt);
+				generate(mapWidth, mapHeight, seed, heightMap);
+				render();
+			}
+			else
+			{
+				seed = enteredSeed;
+				generate(mapWidth, mapHeight, enteredSeed, heightMap);
+				render();
+			}
 		}
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::SeparatorText("Thread Usage");
+		if (ImGui::CollapsingHeader("Threads##072"))
+		{
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+			ImGui::SeparatorText("Thread Usage##073");
 
-		static int sel_6gtr = 0;
-		ImGui::RadioButton("Single-threaded", &sel_6gtr, 0);
-		ImGui::RadioButton("Multi-threaded", &sel_6gtr, 1);
-		sel_6gtr == 0 ? multiThreaded = false : multiThreaded = true;
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+			static int sel_6gtr = 0;
+			ImGui::RadioButton("Single-threaded##074", &sel_6gtr, 0);
+			ImGui::RadioButton("Multi-threaded##075", &sel_6gtr, 1);
+			sel_6gtr == 0 ? multiThreaded = false : multiThreaded = true;
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::SeparatorText("Execution Time##092");
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			std::string milliSecs = "Time: " + std::to_string(ms) + "ms";
+
+			ImGui::Text(milliSecs.c_str());
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+		}
 	}
 
 	// Render output window
-	ImGui::Begin("Terrain Generator");
+	ImGui::Begin("Terrain Generator##077");
 
 	ImGui::Image(*texture);
 
@@ -285,13 +347,25 @@ void TerrainGenerator::render()
 
 			sf::Color tileColour;
 
-			if (height >= waterHeight)
+			switch (currentTerrainID)
 			{
-				tileColour = MAP_PALETTE[height];
-			}
-			else
-			{
-				tileColour = MAP_PALETTE[0];
+				case 0:
+				{
+					tileColour = EARTH[height];
+					break;
+				}					
+
+				case 1:
+				{
+					tileColour = MARS[height];
+					break;
+				}				
+
+				case 2:
+				{
+					tileColour = MOON[height];
+					break;
+				}				
 			}
 
 			// Update pixel array - RGBA

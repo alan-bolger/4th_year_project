@@ -28,10 +28,8 @@ private:
     sf::Sprite sprite;
     sf::Vector2i position;
     std::unique_ptr<AStar> aStar;
-    AStar *externalAStar;
     sf::Clock clock;
     sf::Time timer;
-    bool encapsulatedAStar;
 };
 
 #endif // !BOT_H

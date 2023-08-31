@@ -32,7 +32,7 @@ void DefaultParticle::generate(sf::Vector2f startPosition, float speed, float ti
 	angle = angleDist(gen) * (PI / 180.0);
 
 	// Random time between 0.1 and timeToLive
-	std::uniform_real_distribution<double> timeToLiveDist(0.1, timeToLive);
+	std::uniform_real_distribution<double> timeToLiveDist(2.0, timeToLive);
 	this->timeToLive = sf::seconds(timeToLiveDist(gen));
 
 	// Set modifier step value (the amount the modifier changes on each frame)
@@ -40,7 +40,7 @@ void DefaultParticle::generate(sf::Vector2f startPosition, float speed, float ti
 	// The value should hit 0 just as the time to live timer runs out
 	// It is used to change the green and alpha values so the particle changes
 	// from yellow to red and fades out
-	modifierTimeStep = 255 / (this->timeToLive.asSeconds() / (1.0f / 60.0f));
+	modifierTimeStep = 255.0f / (this->timeToLive.asSeconds() / (1.0f / 60.0f));
 	modifierValue = 255;
 
 	// Random speed between 0.5 and speed

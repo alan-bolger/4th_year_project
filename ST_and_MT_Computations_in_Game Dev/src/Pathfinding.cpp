@@ -24,6 +24,8 @@ Pathfinding::Pathfinding()
 	main_RT->create(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	threadPool = std::make_unique<ThreadPool>(std::thread::hardware_concurrency());
+
+	loadDemoBots();
 }
 
 /// <summary>
@@ -53,10 +55,10 @@ void Pathfinding::handleUI()
 {
     ImGui::PushItemWidth(0);
 
-	if (ImGui::CollapsingHeader("Pathfinding"))
+	if (ImGui::CollapsingHeader("Pathfinding##020"))
 	{
 		// Instructions
-		if (ImGui::CollapsingHeader("Instructions"))
+		if (ImGui::CollapsingHeader("Instructions##021"))
 		{
 			ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -70,9 +72,16 @@ void Pathfinding::handleUI()
 			ImGui::Text("button to begin the test.");
 
 			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::Text("Bots may overlap each other when on");
+			ImGui::Text("the same paths - this is to be");
+			ImGui::Text("expected as I didn't code any collision");
+			ImGui::Text("avoidance.");
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
 		}
 
-		if (ImGui::CollapsingHeader("Map"))
+		if (ImGui::CollapsingHeader("Map##022"))
 		{
 			// Cosmetic options
 			ImGui::Dummy(ImVec2(0.0f, 8.0f));
@@ -133,7 +142,7 @@ void Pathfinding::handleUI()
 
 			ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-			ImGui::InputFloat("Speed", &botSpeed);
+			ImGui::InputFloat("Speed##023", &botSpeed);
 
 			ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -145,10 +154,48 @@ void Pathfinding::handleUI()
 
 			ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
+			std::string botAmt = "Current Bot Amount: " + std::to_string(bots.size());
+
+			ImGui::Text(botAmt.c_str());
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
 			static int selA = 0;
 			ImGui::RadioButton("Place Bots", &selA, 0);
 			ImGui::RadioButton("Select Destination", &selA, 1);
 			selA == 0 ? placeBotsMode = true : placeBotsMode = false;
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			if (ImGui::Button("Clear All Bots"))
+			{
+				if (!bots.empty())
+				{
+					bots.clear();
+				}
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Load Demo Bots"))
+			{
+				if (!bots.empty())
+				{
+					bots.clear();
+				}
+
+				loadDemoBots();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Save Positions"))
+			{
+				if (!bots.empty())
+				{
+					writeBotPositionsToFile();
+				}
+			}
 
 			ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -169,28 +216,41 @@ void Pathfinding::handleUI()
 
 			ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-			ImGui::SeparatorText("Thread Usage");
-
-			ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-			static int sel = 0;
-			ImGui::RadioButton("Single-threaded", &sel, 0);
-			ImGui::RadioButton("Multi-threaded", &sel, 1);
-			sel == 0 ? multiThreaded = false : multiThreaded = true;
-
-			ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
 			if (ImGui::Button("Start Pathfinding"))
 			{
 				startPathfinding(multiThreaded);
 			}
 
 			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			if (ImGui::CollapsingHeader("Threads##033"))
+			{
+				ImGui::SeparatorText("Thread Usage##034");
+
+				ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+				static int sel_5dm = 0;
+				ImGui::RadioButton("Single-threaded##035", &sel_5dm, 0);
+				ImGui::RadioButton("Multi-threaded##036", &sel_5dm, 1);
+				sel_5dm == 0 ? multiThreaded = false : multiThreaded = true;
+
+				ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+				ImGui::SeparatorText("Execution Time##037");
+
+				ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+				std::string milliSecs = "Time: " + std::to_string(ms) + "ms";
+
+				ImGui::Text(milliSecs.c_str());
+
+				ImGui::Dummy(ImVec2(0.0f, 8.0f));
+			}
 		}
 	}
 
 	// Render output window
-	ImGui::Begin("Pathfinding");
+	ImGui::Begin("Pathfinding##081");
 
 	// Draw content region for debug purposes
 	// The content region position is also used to map the
@@ -202,8 +262,6 @@ void Pathfinding::handleUI()
 	vMin.y += ImGui::GetWindowPos().y;
 	vMax.x += ImGui::GetWindowPos().x;
 	vMax.y += ImGui::GetWindowPos().y;
-
-	// ImGui::GetForegroundDrawList()->AddRect(vMin, vMax, IM_COL32(255, 255, 0, 255));
 
 	// Handle ImGui window resize
 	ImVec2 currentWindowSize = ImGui::GetWindowSize();
@@ -225,7 +283,7 @@ void Pathfinding::handleUI()
 	main_RT->clear(sf::Color::Transparent);
 
 	// Get current mouse coordinates from ImGui window
-	ImVec2 mousePos = ImGui::GetMousePos();
+	mousePos = ImGui::GetMousePos();
 
 	// As the mouse position is relative to the entire window,
 	// the region content position must be taken into account
@@ -284,7 +342,7 @@ void Pathfinding::handleUI()
 
 	if (!sf::Mouse::isButtonPressed(sf::Mouse::Left) && mouseLeftButtonClicked)
 	{
-		// Simply to array index value
+		// Simplify to array index value
 		int index = tileCoords.y * mapWidth + tileCoords.x;
 
 		// Prevent out-of-bounds access
@@ -300,7 +358,6 @@ void Pathfinding::handleUI()
 
 					// This is kind of inefficient, but it works - it makes sure you can't
 					// place a bot over an existing bot
-					// Also, how cool is it to see 'auto bot' in a range-based for loop
 					for (const auto &bot : bots)
 					{
 						if (bot->getPosition() == tileCoords)
@@ -313,7 +370,10 @@ void Pathfinding::handleUI()
 					{
 						if (placeBotsMode)
 						{
-							bots.push_back(new Bot(tileCoords.x, tileCoords.y, *layer_1->getTileArray()));
+							if (mousePos.x >= 0 && mousePos.y >= 0) // Prevents negative coordinates wraparound if mouse is outside the window (left and top only)
+							{
+								bots.push_back(new Bot(tileCoords.x, tileCoords.y, *layer_1->getTileArray()));
+							}							
 						}
 						else
 						{
@@ -346,6 +406,15 @@ void Pathfinding::render()
 		// Draw map
 		layer_0->draw(tileMap_RT, zoom);
 		layer_1->draw(tileMap_RT, zoom);
+
+		// Draw destination tile
+		sf::RectangleShape rect(sf::Vector2f(16, 16));
+		rect.setOutlineThickness(-1.0f);
+		rect.setOutlineColor(sf::Color::Green);
+		rect.setFillColor(sf::Color::Transparent);
+		rect.setPosition(destinationNode.x * 16, destinationNode.y * 16);
+
+		tileMap_RT.draw(rect);
 	}
 
 	if (showDebugMap)
@@ -388,6 +457,52 @@ void Pathfinding::render()
 }
 
 /// <summary>
+/// Loads lots of bots for multi threading testing purposes.
+/// </summary>
+void Pathfinding::loadDemoBots()
+{
+	// Read from the text file
+	std::ifstream positions("bot_positions.txt");
+
+	std::string text;
+
+	// Read file line by line
+	while (std::getline(positions, text))
+	{
+		std::istringstream iss(text);
+
+		int x, y;
+
+		// Extract x and y values from the string stream (discard comma)
+		char comma;
+
+		if (iss >> x >> comma >> y) 
+		{
+			bots.push_back(new Bot(x, y, *layer_1->getTileArray()));
+		}
+	}
+
+	// Close the file
+	positions.close();
+}
+
+/// <summary>
+/// This was used for creating the demo bots.
+/// </summary>
+void Pathfinding::writeBotPositionsToFile()
+{
+	std::fstream file;
+	file.open("bot_positions.txt", std::ios_base::out);
+
+	for (int i = 0; i < bots.size(); i++)
+	{
+		file << bots[i]->getPosition().x << ", " << bots[i]->getPosition().y << std::endl;
+	}
+
+	file.close();
+}
+
+/// <summary>
 /// Begin the pathfinding algorithm.
 /// </summary>
 /// <param name="multiThreaded">False for single-threaded and true for multi-threaded.</param>
@@ -400,8 +515,6 @@ void Pathfinding::startPathfinding(bool multiThreaded)
 
 	if (multiThreaded)
 	{
-		std::cout << "Multi Threaded" << std::endl;
-		
 		for (auto &bot : bots)
 		{
 			// This lambda adds a block of code to the thread pool as a job
@@ -415,14 +528,12 @@ void Pathfinding::startPathfinding(bool multiThreaded)
 	}
 	else
 	{
-		std::cout << "Single Threaded" << std::endl;
-
 		for (auto &bot : bots)
 		{
 			bot->startPathfinding(destinationNode.x, destinationNode.y);
 		}
 
-		timer.stop();
+		ms = timer.stop();
 	}
 
 	if (multiThreaded)
@@ -432,6 +543,6 @@ void Pathfinding::startPathfinding(bool multiThreaded)
 			future.wait();
 		}
 
-		timer.stop();
+		ms = timer.stop();
 	}
 }
