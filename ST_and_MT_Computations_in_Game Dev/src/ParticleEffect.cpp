@@ -95,7 +95,7 @@ void ParticleEffect::handleUI()
 {
 	ImGui::PushItemWidth(0); 
 
-	if (ImGui::CollapsingHeader("Particles"))
+	if (ImGui::CollapsingHeader("Particle Effect"))
 	{
 		// Particle properties
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));

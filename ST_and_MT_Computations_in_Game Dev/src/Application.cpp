@@ -191,7 +191,7 @@ void Application::draw()
 	ImGui::SFML::Render(window);
 
 	if (pathfinding != nullptr) { pathfinding->render(); }
-	if (terrainGenerator != nullptr) { terrainGenerator->render(); }
+	//if (terrainGenerator != nullptr) { terrainGenerator->render(); }
 
 	window.display();
 }

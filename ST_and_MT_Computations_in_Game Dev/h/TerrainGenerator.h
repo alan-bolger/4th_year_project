@@ -43,14 +43,14 @@ public:
 private:
 	std::unique_ptr<Noise> noise;
 	std::vector<float> heightMap;
-	int mapWidth = 128;
-	int mapHeight = 128;
-	int tileW = 16;
-	int tileH = 16;
+	int mapWidth = 960;
+	int mapHeight = 960;
+	int seed = 0;
 	bool multiThreaded = false;
-	std::unique_ptr<sf::RenderTexture> tileMap_RT;
 	std::unique_ptr<sf::RenderTexture> main_RT;
-	sf::View windowView;
+	int waterHeight = 0;
+	std::random_device rd;
+	std::mt19937 mt;
 	float zoom = 1.0f;
 	ImVec2 renderWindowSize{ 1280, 720 };
 };

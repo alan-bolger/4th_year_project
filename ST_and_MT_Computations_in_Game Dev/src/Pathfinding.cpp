@@ -53,125 +53,144 @@ void Pathfinding::handleUI()
 {
     ImGui::PushItemWidth(0);
 
-    if (ImGui::CollapsingHeader("Map"))
-    {
-        // Cosmetic options
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::SeparatorText("Colour Scheme");
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::ColorEdit3("Nodes", nodeColour.get());
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-        ImGui::ColorEdit3("Obstacles", obstacleColour.get());
-
-        ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		ImGui::ColorEdit3("Passable", passableColour.get());
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		ImGui::Checkbox("Show Tile Map", &showTileMap);
-		ImGui::Checkbox("Show Debug Map", &showDebugMap);
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		if (ImGui::Button("Zoom -"))
-		{
-			zoom *= 2.0f;
-			windowView.zoom(2.0f);
-		}
-
-		if (ImGui::Button("Zoom +"))
-		{
-			zoom *= 0.5f;
-			windowView.zoom(0.5f);
-			windowView.setCenter(windowView.getCenter());
-		}
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		ImGui::SeparatorText("Mouse Positon (Map Coordinates)");
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		std::string strX = "X: " + std::to_string(renderWindowMousePos.x);
-		std::string strY = "Y: " + std::to_string(renderWindowMousePos.y);
-
-		ImGui::Text(strX.c_str());
-		ImGui::Text(strY.c_str());
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-    }
-
-	if (ImGui::CollapsingHeader("Bots"))
+	if (ImGui::CollapsingHeader("Pathfinding"))
 	{
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		ImGui::Text("This is the time taken between\nbot movements (in seconds)");
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		ImGui::InputFloat("Speed", &botSpeed);
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		ImGui::SeparatorText("Edit Mode");
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		ImGui::Text("Place bots or the destination\nnode using the mouse and left-button");
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		static int selA = 0;
-		ImGui::RadioButton("Place Bots", &selA, 0);
-		ImGui::RadioButton("Select Destination", &selA, 1);
-		selA == 0 ? placeBotsMode = true : placeBotsMode = false;
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		ImGui::SeparatorText("Destination Node (Tile Coords)");
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		std::string strX = "X: " + std::to_string(destinationNode.x);
-		std::string strY = "Y: " + std::to_string(destinationNode.y);
-
-		ImGui::Text(strX.c_str());
-		ImGui::Text(strY.c_str());
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		ImGui::Checkbox("Show Bots", &showBots);
-		ImGui::Checkbox("Show Paths", &showPaths);
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		ImGui::SeparatorText("Thread Usage");
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		static int sel = 0;
-		ImGui::RadioButton("Single-threaded", &sel, 0);
-		ImGui::RadioButton("Multi-threaded", &sel, 1);
-		sel == 0 ? multiThreaded = false : multiThreaded = true;
-
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
-
-		if (ImGui::Button("Start Pathfinding"))
+		// Instructions
+		if (ImGui::CollapsingHeader("Instructions"))
 		{
-			startPathfinding(multiThreaded);
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::Text("Use the cursor keys to move around");
+			ImGui::Text("the map. In the menu below, choose");
+			ImGui::Text("between placing bots or placing");
+			ImGui::Text("the destination goal (use mouse and");
+			ImGui::Text("left button to place). Select from");
+			ImGui::Text("single threaded or multi threaded,");
+			ImGui::Text("and press the 'Start Pathfinding'");
+			ImGui::Text("button to begin the test.");
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
 		}
 
-		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+		if (ImGui::CollapsingHeader("Map"))
+		{
+			// Cosmetic options
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::SeparatorText("Colour Scheme");
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::ColorEdit3("Nodes", nodeColour.get());
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::ColorEdit3("Obstacles", obstacleColour.get());
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::ColorEdit3("Passable", passableColour.get());
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::Checkbox("Show Tile Map", &showTileMap);
+			ImGui::Checkbox("Show Debug Map", &showDebugMap);
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			if (ImGui::Button("Zoom -"))
+			{
+				zoom *= 2.0f;
+				windowView.zoom(2.0f);
+			}
+
+			if (ImGui::Button("Zoom +"))
+			{
+				zoom *= 0.5f;
+				windowView.zoom(0.5f);
+			}
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::SeparatorText("Mouse Positon (Map Coordinates)");
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			std::string strX = "X: " + std::to_string(renderWindowMousePos.x);
+			std::string strY = "Y: " + std::to_string(renderWindowMousePos.y);
+
+			ImGui::Text(strX.c_str());
+			ImGui::Text(strY.c_str());
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+		}
+
+		if (ImGui::CollapsingHeader("Bots"))
+		{
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::Text("This is the time taken between\nbot movements (in seconds)");
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::InputFloat("Speed", &botSpeed);
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::SeparatorText("Edit Mode");
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::Text("Place bots or the destination\nnode using the mouse and left-button");
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			static int selA = 0;
+			ImGui::RadioButton("Place Bots", &selA, 0);
+			ImGui::RadioButton("Select Destination", &selA, 1);
+			selA == 0 ? placeBotsMode = true : placeBotsMode = false;
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::SeparatorText("Destination Node (Tile Coords)");
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			std::string strX = "X: " + std::to_string(destinationNode.x);
+			std::string strY = "Y: " + std::to_string(destinationNode.y);
+
+			ImGui::Text(strX.c_str());
+			ImGui::Text(strY.c_str());
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::Checkbox("Show Bots", &showBots);
+			ImGui::Checkbox("Show Paths", &showPaths);
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			ImGui::SeparatorText("Thread Usage");
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			static int sel = 0;
+			ImGui::RadioButton("Single-threaded", &sel, 0);
+			ImGui::RadioButton("Multi-threaded", &sel, 1);
+			sel == 0 ? multiThreaded = false : multiThreaded = true;
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+			if (ImGui::Button("Start Pathfinding"))
+			{
+				startPathfinding(multiThreaded);
+			}
+
+			ImGui::Dummy(ImVec2(0.0f, 8.0f));
+		}
 	}
 
 	// Render output window
-	ImGui::Begin("Render##02");
+	ImGui::Begin("Pathfinding");
 
 	// Draw content region for debug purposes
 	// The content region position is also used to map the

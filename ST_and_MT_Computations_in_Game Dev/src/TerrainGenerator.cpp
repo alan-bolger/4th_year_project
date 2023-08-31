@@ -3,21 +3,15 @@
 /// <summary>
 /// TerrainGenerator constructor.
 /// </summary>
-TerrainGenerator::TerrainGenerator()
+TerrainGenerator::TerrainGenerator() : mt(rd())
 {
 	noise = std::make_unique<Noise>();
 
-	// Test map
+	// Default map
 	generate(mapWidth, mapHeight, 500, heightMap);
 
-	tileMap_RT = std::make_unique<sf::RenderTexture>();
-	tileMap_RT->create(tileW * mapWidth, tileH * mapHeight);
-
 	main_RT = std::make_unique<sf::RenderTexture>();
-	main_RT->create(1280, 720);
-
-	windowView.setSize(tileW * mapWidth, tileH * mapHeight);
-	windowView.setCenter((mapWidth / 2) * tileW, (mapHeight / 2) * tileH);
+	main_RT->create(mapWidth, mapHeight);
 }
 
 /// <summary>
@@ -151,8 +145,31 @@ void TerrainGenerator::handleUI()
 		ImGui::InputInt("Width", &mapWidth);
 		ImGui::InputInt("Height", &mapHeight);
 
-		mapWidth = std::clamp(mapWidth, 32, 4096);
-		mapHeight = std::clamp(mapHeight, 32, 4096);
+		mapWidth = std::clamp(mapWidth, 32, 16384);
+		mapHeight = std::clamp(mapHeight, 32, 16384);
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		std::string strX = "Seed Used: " + std::to_string(seed);
+
+		ImGui::Text(strX.c_str());
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		ImGui::SliderInt("Water Height", &waterHeight, 0, 9);
+
+		ImGui::Dummy(ImVec2(0.0f, 8.0f));
+
+		if (ImGui::Button("Generate Map"))
+		{
+			main_RT = std::make_unique<sf::RenderTexture>();
+			main_RT->create(mapWidth, mapHeight);
+
+			std::uniform_int_distribution<int> dist(0, 65535);
+			seed = dist(mt);
+			generate(mapWidth, mapHeight, seed, heightMap);
+			render();
+		}
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
@@ -160,16 +177,16 @@ void TerrainGenerator::handleUI()
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 
-		static int sel = 0;
-		ImGui::RadioButton("Single-threaded", &sel, 0);
-		ImGui::RadioButton("Multi-threaded", &sel, 1);
-		sel == 0 ? multiThreaded = false : multiThreaded = true;
+		static int sel_6gtr = 0;
+		ImGui::RadioButton("Single-threaded", &sel_6gtr, 0);
+		ImGui::RadioButton("Multi-threaded", &sel_6gtr, 1);
+		sel_6gtr == 0 ? multiThreaded = false : multiThreaded = true;
 
 		ImGui::Dummy(ImVec2(0.0f, 8.0f));
 	}
 
 	// Render output window
-	ImGui::Begin("Render##02");
+	ImGui::Begin("Terrain Generator");
 
 	// Draw content region for debug purposes
 	// The content region position is also used to map the
@@ -184,25 +201,6 @@ void TerrainGenerator::handleUI()
 
 	// ImGui::GetForegroundDrawList()->AddRect(vMin, vMax, IM_COL32(255, 255, 0, 255));
 
-	// Handle ImGui window resize
-	ImVec2 currentWindowSize = ImGui::GetWindowSize();
-
-	if (currentWindowSize.x != renderWindowSize.x || currentWindowSize.y != renderWindowSize.y)
-	{
-		renderWindowSize = currentWindowSize;
-
-		ImVec2 vMin = ImGui::GetWindowContentRegionMin();
-		ImVec2 vMax = ImGui::GetWindowContentRegionMax();
-
-		float sizeX = vMax.x - vMin.x;
-		float sizeY = vMax.y - vMin.y;
-
-		main_RT = std::make_unique<sf::RenderTexture>();
-		main_RT->create(sizeX, sizeY);
-	}
-
-	main_RT->clear(sf::Color::Transparent);
-
 	// Get current mouse coordinates from ImGui window
 	ImVec2 mousePos = ImGui::GetMousePos();
 
@@ -211,83 +209,56 @@ void TerrainGenerator::handleUI()
 	mousePos.x -= vMin.x;
 	mousePos.y -= vMin.y;
 
-	sf::Sprite renderSprite(tileMap_RT->getTexture());
-	main_RT->draw(renderSprite);
-
-	main_RT->display();
-
 	ImGui::Image(*main_RT);
 
 	ImGui::End();
-
-	// Controls for moving map
-	float jumpRange = 5.0f;
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-	{
-		windowView.move({ 0.0f, -jumpRange });
-	}
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-	{
-		windowView.move({ 0.0f, jumpRange });
-	}
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-	{
-		windowView.move({ -jumpRange, 0.0f });
-	}
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-	{
-		windowView.move({ jumpRange, 0.0f });
-	}
 }
 
 /// <summary>
 /// Draw the terrain map.
+/// This does NOT get done on every frame, instead the map is only
+/// rendered when the terrain data is updated.
 /// </summary>
 void TerrainGenerator::render()
 {
-	tileMap_RT->clear(sf::Color(0, 0, 0, 0));
-	tileMap_RT->setView(windowView);
+	main_RT->clear(sf::Color(0, 0, 0, 0));
 
-	// Optimise tile drawing
-	int startTileX = (windowView.getCenter().x - (windowView.getSize().x / 2) * zoom) / tileW;
-	int startTileY = (windowView.getCenter().y - (windowView.getSize().y / 2) * zoom) / tileH;
-
-	int endTileX = (windowView.getCenter().x + (windowView.getSize().x / 2) * zoom) / tileW;
-	int endTileY = (windowView.getCenter().y + (windowView.getSize().y / 2) * zoom) / tileH;
-
-	tileMap_RT->clear();
-
-	for (int y = startTileY; y < endTileY; ++y)
+	for (int y = 0; y < mapHeight; ++y)
 	{
-		for (int x = startTileX; x < endTileX; ++x)
+		for (int x = 0; x < mapWidth; ++x)
 		{
+			// Just in case because you never know.....
 			if (y < 0 || y >= mapHeight || x < 0 || x >= mapWidth)
 			{
 				continue;
 			}
 
-			sf::Color tileColour = MAP_PALETTE[static_cast<int>(heightMap[y * mapWidth + x])];
+			int height = static_cast<int>(heightMap[y * mapWidth + x]);
 
-			sf::Vector2i f_topLeft = sf::Vector2i(x * tileW, y * tileH);
-			sf::Vector2i f_topRight = sf::Vector2i((x * tileW) + tileW,	y * tileH);
-			sf::Vector2i f_bottomRight = sf::Vector2i((x * tileW) + tileW, (y * tileH) + tileH);
-			sf::Vector2i f_bottomLeft = sf::Vector2i(x * tileW,	(y * tileH) + tileH);
+			sf::Color tileColour;
+
+			if (height >= waterHeight)
+			{
+				tileColour = MAP_PALETTE[height];
+			}
+			else
+			{
+				tileColour = MAP_PALETTE[0];
+			}
+
+			sf::Vector2i f_topLeft = sf::Vector2i(x, y);
 
 			sf::Vertex vertices[] =
 			{
 				sf::Vertex(sf::Vector2f(f_topLeft), tileColour),
-				sf::Vertex(sf::Vector2f(f_topRight), tileColour),
-				sf::Vertex(sf::Vector2f(f_bottomRight), tileColour),
-				sf::Vertex(sf::Vector2f(f_bottomLeft), tileColour),
+				sf::Vertex(sf::Vector2f(f_topLeft += { 1, 0 }), tileColour),
+				sf::Vertex(sf::Vector2f(f_topLeft += { 1, 1 }), tileColour),
+				sf::Vertex(sf::Vector2f(f_topLeft += { 0, 1 }), tileColour),
 			};
 
-			tileMap_RT->draw(vertices, 4, sf::Quads);
+			main_RT->draw(vertices, 4, sf::Quads);
 		}
 	}
 
-	tileMap_RT->display();
+	main_RT->display();
 }
