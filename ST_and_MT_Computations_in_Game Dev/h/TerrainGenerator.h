@@ -35,14 +35,14 @@ class TerrainGenerator
 public:
 	TerrainGenerator();
 	~TerrainGenerator();
-	void generate(int width, int height, int seed, std::vector<int> &array);
+	void generate(int width, int height, int seed, std::vector<float> &array);
 	void update(const sf::Time &dt);
 	void handleUI();
 	void render();
 
 private:
 	std::unique_ptr<Noise> noise;
-	std::vector<int> heightMap;
+	std::vector<float> heightMap;
 	int mapWidth = 128;
 	int mapHeight = 128;
 	int tileW = 16;

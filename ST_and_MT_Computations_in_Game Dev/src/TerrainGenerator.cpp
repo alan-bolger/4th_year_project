@@ -35,7 +35,7 @@ TerrainGenerator::~TerrainGenerator()
 /// <param name="height">The height of the map.</param>
 /// <param name="seed">A seed value for map randomization. Any given seed will always produce the same result.</param>
 /// <param name="array">The height map is stored here.</param>
-void TerrainGenerator::generate(int width, int height, int seed, std::vector<int> &array)
+void TerrainGenerator::generate(int width, int height, int seed, std::vector<float> &array)
 {
 	// Clear the height map if not empty
 	if (array.size() > 0)
@@ -219,6 +219,29 @@ void TerrainGenerator::handleUI()
 	ImGui::Image(*main_RT);
 
 	ImGui::End();
+
+	// Controls for moving map
+	float jumpRange = 5.0f;
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+	{
+		windowView.move({ 0.0f, -jumpRange });
+	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+	{
+		windowView.move({ 0.0f, jumpRange });
+	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+	{
+		windowView.move({ -jumpRange, 0.0f });
+	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+	{
+		windowView.move({ jumpRange, 0.0f });
+	}
 }
 
 /// <summary>
@@ -247,7 +270,7 @@ void TerrainGenerator::render()
 				continue;
 			}
 
-			sf::Color tileColour = MAP_PALETTE[heightMap[y * mapWidth + x]];
+			sf::Color tileColour = MAP_PALETTE[static_cast<int>(heightMap[y * mapWidth + x])];
 
 			sf::Vector2i f_topLeft = sf::Vector2i(x * tileW, y * tileH);
 			sf::Vector2i f_topRight = sf::Vector2i((x * tileW) + tileW,	y * tileH);
