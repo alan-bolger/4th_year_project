@@ -253,7 +253,7 @@ void Raytracer::handleUI()
     }
 
 	// Render output window
-	ImGui::Begin("Render##01");
+	ImGui::Begin("Raytracer");
 
     renderTexture->update(pixelArray.data());
 	ImGui::Image(*renderTexture);
@@ -300,12 +300,9 @@ void Raytracer::render(bool multiThreaded)
 	}
 	else
 	{
-		// This renders using a single thread (this thread)
+		// This renders using a single thread (this thread, the main thread)
         // The entire image is rendered in one sweep
-        threadPool->addJob([=]
-            {
-                renderSection({ 0, 0 }, { renderW, renderH });
-            });
+        renderSection({ 0, 0 }, { renderW, renderH });
 	}
 }
 

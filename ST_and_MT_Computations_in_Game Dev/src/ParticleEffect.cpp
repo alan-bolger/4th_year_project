@@ -147,7 +147,7 @@ void ParticleEffect::handleUI()
 	}
 
 	// Render output window
-	ImGui::Begin("Render##03");
+	ImGui::Begin("Particle Effect");
 
 	// Draw content region for debug purposes
 	// The content region position is also used to map the

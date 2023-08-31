@@ -13,6 +13,7 @@
 #include "imgui-SFML.h"
 #include "ThreadPool.h"
 #include "Noise.h"
+#include "Timer.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -36,6 +37,7 @@ public:
 	TerrainGenerator();
 	~TerrainGenerator();
 	void generate(int width, int height, int seed, std::vector<float> &array);
+	void generateSection(sf::Vector2i pixTL, sf::Vector2i pixBR);
 	void update(const sf::Time &dt);
 	void handleUI();
 	void render();
@@ -43,16 +45,18 @@ public:
 private:
 	std::unique_ptr<Noise> noise;
 	std::vector<float> heightMap;
+	std::unique_ptr<ThreadPool> threadPool;
 	int mapWidth = 960;
 	int mapHeight = 960;
 	int seed = 0;
 	bool multiThreaded = false;
-	std::unique_ptr<sf::RenderTexture> main_RT;
+	std::unique_ptr<sf::Texture> texture;
 	int waterHeight = 0;
 	std::random_device rd;
 	std::mt19937 mt;
-	float zoom = 1.0f;
+	std::vector<uint8_t> pixelArray;
 	ImVec2 renderWindowSize{ 1280, 720 };
+	int availableThreads = 0;
 };
 
 #endif // !TERRAINGENERATOR_H

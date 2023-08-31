@@ -10,8 +10,16 @@ TerrainGenerator::TerrainGenerator() : mt(rd())
 	// Default map
 	generate(mapWidth, mapHeight, 500, heightMap);
 
-	main_RT = std::make_unique<sf::RenderTexture>();
-	main_RT->create(mapWidth, mapHeight);
+	pixelArray.resize(mapWidth * mapHeight * 4); // RGBA values stored here
+
+	texture = std::make_unique<sf::Texture>();
+	texture->create(mapWidth, mapHeight);
+
+	render(); // Update map so it's visible on startup
+
+	availableThreads = std::thread::hardware_concurrency();
+
+	threadPool = std::make_unique<ThreadPool>(availableThreads);
 }
 
 /// <summary>
@@ -39,24 +47,46 @@ void TerrainGenerator::generate(int width, int height, int seed, std::vector<flo
 
 	array.resize(width * height);
 
-	// Generate terrain
-	for (int y = 0; y < height; ++y)
+	// Store futures in here
+	std::vector<std::future<void>> futures;
+
+	if (multiThreaded)
 	{
-		for (int x = 0; x < width; ++x)
+		int sectionW = mapWidth / 16;
+		int sectionH = mapHeight / 16;
+
+		// Add the jobs to the thread pool
+		for (int y = 0; y < 16; ++y)
 		{
-			float freqX = x / static_cast<float>(width) - 0.5f;
-			float freqY = y / static_cast<float>(height) - 0.5f;
+			for (int x = 0; x < 16; ++x)
+			{
+				// This lambda adds a block of code to the thread pool as a job
+				auto f = threadPool->addJob([=]
+					{
+						int startX = x * sectionW;
+						int startY = y * sectionH;
 
-			double e = (1.00f * noise->generate(1.0 * (double)freqX, 1.0 * (double)freqY)
-				+ 0.50f * noise->generate(2.0 * (double)freqX + seed, 2.0 * (double)freqY + seed)
-				+ 0.25f * noise->generate(4.0 * (double)freqX + seed, 4.0 * (double)freqY + seed)
-				+ 0.13f * noise->generate(8.0 * (double)freqX + seed, 8.0 * (double)freqY + seed)
-				+ 0.06f * noise->generate(16.0 * (double)freqX + seed, 16.0 * (double)freqY + seed)
-				+ 0.03f * noise->generate(32.0 * (double)freqX + seed, 32.0 * (double)freqY + seed));
+						int endX = startX + sectionW;
+						int endY = startY + sectionH;
 
-			e /= (3.00 + 0.50 + 0.25 + 0.13 + 0.06 + 0.03);
-			e = pow(e, 4.0f);
-			array[y * width + x] = e;
+						generateSection(sf::Vector2i(startX, startY), sf::Vector2i(endX, endY));
+					});
+
+				futures.push_back(std::move(f));
+			}
+		}
+	}
+	else
+	{
+		generateSection({ 0, 0 }, { mapWidth, mapHeight });
+	}
+
+	if (multiThreaded)
+	{
+		// Wait for all threads to finish
+		for (auto &future : futures)
+		{
+			future.wait();
 		}
 	}
 
@@ -64,23 +94,23 @@ void TerrainGenerator::generate(int width, int height, int seed, std::vector<flo
 	float max = 0;
 
 	// Initialise min and max from first two elevation map elements
-	if (array[0] > array[1])
+	if (heightMap[0] > heightMap[1])
 	{
-		max = array[0];
-		min = array[1];
+		max = heightMap[0];
+		min = heightMap[1];
 	}
 	else
 	{
-		max = array[1];
-		min = array[0];
+		max = heightMap[1];
+		min = heightMap[0];
 	}
 
 	// First pass of array to find MIN and MAX values
-	for (int y = 0; y < height; ++y)
+	for (int y = 0; y < mapHeight; ++y)
 	{
-		for (int x = 0; x < width; ++x)
+		for (int x = 0; x < mapWidth; ++x)
 		{
-			float yValue = array[y * width + x];
+			float yValue = heightMap[y * mapWidth + x];
 
 			// Set min and max values from array
 			if (yValue > max)
@@ -97,22 +127,59 @@ void TerrainGenerator::generate(int width, int height, int seed, std::vector<flo
 	float yValue = 0.0f;
 
 	// Second pass of array to normalise values using MIN and MAX
-	for (int y = 0; y < height; ++y)
+	for (int y = 0; y < mapHeight; ++y)
 	{
-		for (int x = 0; x < width; ++x)
+		for (int x = 0; x < mapWidth; ++x)
 		{
-			float arrVal = array[y * width + x];
-			array[y * width + x] = noise->normaliseToRange(arrVal, min, max) * 10; // Between 0 and 9;
+			float arrVal = heightMap[y * mapWidth + x];
+			heightMap[y * mapWidth + x] = noise->normaliseToRange(arrVal, min, max) * 10; // Between 0 and 9;
 
-			if (array[y * width + x] > 9)
+			if (heightMap[y * mapWidth + x] > 9)
 			{
-				array[y * width + x] = 9;
+				heightMap[y * mapWidth + x] = 9;
 			}
 
-			if (array[y * width + x] < 0)
+			if (heightMap[y * mapWidth + x] < 0)
 			{
-				array[y * width + x] = 0;
+				heightMap[y * mapWidth + x] = 0;
 			}
+		}
+	}
+}
+
+/// <summary>
+/// Generates a block of terrain to the given dimensions.
+/// </summary>
+/// <param name="pixTL">The coordinate of the upper-left corner of the section.</param>
+/// <param name="pixBR">The coordinate of the lower-right corner of the section.</param>
+void TerrainGenerator::generateSection(sf::Vector2i pixTL, sf::Vector2i pixBR)
+{
+	// Generate terrain
+	for (unsigned int y = pixTL.y; y < pixBR.y; ++y)
+	{
+		for (unsigned int x = pixTL.x; x < pixBR.x; ++x)
+		{
+			int index = (y * mapWidth + x);
+
+			// Out of bounds check
+			if (index < 0 || (index * 4) >(pixelArray.size() - 1))
+			{
+				continue;
+			}
+
+			float freqX = x / static_cast<float>(mapWidth) - 0.5f;
+			float freqY = y / static_cast<float>(mapHeight) - 0.5f;
+
+			double e = (1.00f * noise->generate(1.0 * (double)freqX, 1.0 * (double)freqY)
+				+ 0.50f * noise->generate(2.0 * (double)freqX + seed, 2.0 * (double)freqY + seed)
+				+ 0.25f * noise->generate(4.0 * (double)freqX + seed, 4.0 * (double)freqY + seed)
+				+ 0.13f * noise->generate(8.0 * (double)freqX + seed, 8.0 * (double)freqY + seed)
+				+ 0.06f * noise->generate(16.0 * (double)freqX + seed, 16.0 * (double)freqY + seed)
+				+ 0.03f * noise->generate(32.0 * (double)freqX + seed, 32.0 * (double)freqY + seed));
+
+			e /= (3.00 + 0.50 + 0.25 + 0.13 + 0.06 + 0.03);
+			e = pow(e, 4.0f);
+			heightMap[y * mapWidth + x] = e;
 		}
 	}
 }
@@ -162,8 +229,8 @@ void TerrainGenerator::handleUI()
 
 		if (ImGui::Button("Generate Map"))
 		{
-			main_RT = std::make_unique<sf::RenderTexture>();
-			main_RT->create(mapWidth, mapHeight);
+			texture = std::make_unique<sf::Texture>();
+			texture->create(mapWidth, mapHeight);
 
 			std::uniform_int_distribution<int> dist(0, 65535);
 			seed = dist(mt);
@@ -188,28 +255,7 @@ void TerrainGenerator::handleUI()
 	// Render output window
 	ImGui::Begin("Terrain Generator");
 
-	// Draw content region for debug purposes
-	// The content region position is also used to map the
-	// mouse position correctly
-	ImVec2 vMin = ImGui::GetWindowContentRegionMin();
-	ImVec2 vMax = ImGui::GetWindowContentRegionMax();
-
-	vMin.x += ImGui::GetWindowPos().x;
-	vMin.y += ImGui::GetWindowPos().y;
-	vMax.x += ImGui::GetWindowPos().x;
-	vMax.y += ImGui::GetWindowPos().y;
-
-	// ImGui::GetForegroundDrawList()->AddRect(vMin, vMax, IM_COL32(255, 255, 0, 255));
-
-	// Get current mouse coordinates from ImGui window
-	ImVec2 mousePos = ImGui::GetMousePos();
-
-	// As the mouse position is relative to the entire window,
-	// the region content position must be taken into account
-	mousePos.x -= vMin.x;
-	mousePos.y -= vMin.y;
-
-	ImGui::Image(*main_RT);
+	ImGui::Image(*texture);
 
 	ImGui::End();
 }
@@ -221,19 +267,24 @@ void TerrainGenerator::handleUI()
 /// </summary>
 void TerrainGenerator::render()
 {
-	main_RT->clear(sf::Color(0, 0, 0, 0));
+	pixelArray.resize(mapWidth * mapHeight * 4);
+
+	// Set every value to 0
+	std::fill(pixelArray.begin(), pixelArray.end(), 0);
 
 	for (int y = 0; y < mapHeight; ++y)
 	{
 		for (int x = 0; x < mapWidth; ++x)
 		{
-			// Just in case because you never know.....
+			// Out of bounds check
 			if (y < 0 || y >= mapHeight || x < 0 || x >= mapWidth)
 			{
 				continue;
 			}
 
-			int height = static_cast<int>(heightMap[y * mapWidth + x]);
+			// Get the height from the height map
+			int index = y * mapWidth + x;
+			int height = static_cast<int>(heightMap[index]);
 
 			sf::Color tileColour;
 
@@ -246,19 +297,13 @@ void TerrainGenerator::render()
 				tileColour = MAP_PALETTE[0];
 			}
 
-			sf::Vector2i f_topLeft = sf::Vector2i(x, y);
-
-			sf::Vertex vertices[] =
-			{
-				sf::Vertex(sf::Vector2f(f_topLeft), tileColour),
-				sf::Vertex(sf::Vector2f(f_topLeft += { 1, 0 }), tileColour),
-				sf::Vertex(sf::Vector2f(f_topLeft += { 1, 1 }), tileColour),
-				sf::Vertex(sf::Vector2f(f_topLeft += { 0, 1 }), tileColour),
-			};
-
-			main_RT->draw(vertices, 4, sf::Quads);
+			// Update pixel array - RGBA
+			pixelArray[index * 4] = tileColour.r;
+			pixelArray[(index * 4) + 1] = tileColour.g;
+			pixelArray[(index * 4) + 2] = tileColour.b;
+			pixelArray[(index * 4) + 3] = 255;
 		}
 	}
 
-	main_RT->display();
+	texture->update(pixelArray.data());
 }
