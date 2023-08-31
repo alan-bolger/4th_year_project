@@ -393,24 +393,45 @@ void Pathfinding::render()
 /// <param name="multiThreaded">False for single-threaded and true for multi-threaded.</param>
 void Pathfinding::startPathfinding(bool multiThreaded)
 {
+	// Store futures in here
+	std::vector<std::future<void>> futures;
+
+	Timer timer("Pathfinding");
+
 	if (multiThreaded)
 	{
-		// TODO: Add timer here
+		std::cout << "Multi Threaded" << std::endl;
+		
 		for (auto &bot : bots)
 		{
 			// This lambda adds a block of code to the thread pool as a job
-			threadPool->addJob([=]
+			auto f = threadPool->addJob([=]
 				{
 					bot->startPathfinding(destinationNode.x, destinationNode.y);
 				});
+
+			futures.push_back(std::move(f));
 		}
 	}
 	else
 	{
-		// TODO: Add timer here
+		std::cout << "Single Threaded" << std::endl;
+
 		for (auto &bot : bots)
 		{
 			bot->startPathfinding(destinationNode.x, destinationNode.y);
 		}
+
+		timer.stop();
+	}
+
+	if (multiThreaded)
+	{
+		for (auto &future : futures)
+		{
+			future.wait();
+		}
+
+		timer.stop();
 	}
 }

@@ -268,14 +268,22 @@ void Raytracer::handleUI()
 /// <param name="multiThreaded">False for single-threaded and true for multi-threaded.</param>
 void Raytracer::render(bool multiThreaded)
 {
+    // Create timer
+    Timer timer("Raytracer Render");
+
     pixelArray.clear();
     pixelArray.resize(renderW * renderH * 4);
 
     renderTexture = std::make_unique<sf::Texture>();
     renderTexture->create(renderW, renderH);
 
+    // Store futures in here
+    std::vector<std::future<void>> futures;
+
 	if (multiThreaded)
-	{
+    {
+        std::cout << "Multi threaded" << std::endl;
+
         int numOfSectionsW = (renderW / renderTileW) + 1;
         int numOfSectionsH = (renderH / renderTileH) + 1;
 
@@ -285,7 +293,7 @@ void Raytracer::render(bool multiThreaded)
             for (int x = 0; x < numOfSectionsW; ++x)
             {
                 // This lambda adds a block of code to the thread pool as a job
-                threadPool->addJob([=]
+                auto f = threadPool->addJob([=]
                 {
                     int startX = x * renderTileW;
                     int startY = y * renderTileH;
@@ -293,17 +301,34 @@ void Raytracer::render(bool multiThreaded)
                     int endX = startX + renderTileW;
                     int endY = startY + renderTileH;
 
-                    renderSection(sf::Vector2i(startX, startY), sf::Vector2i(endX, endY));
+                    renderSection({ startX, startY }, { endX, endY });
                 });
+
+                futures.push_back(std::move(f));
             }
         }
 	}
 	else
 	{
+        std::cout << "Single Threaded" << std::endl;
+
 		// This renders using a single thread (this thread, the main thread)
         // The entire image is rendered in one sweep
         renderSection({ 0, 0 }, { renderW, renderH });
+
+        timer.stop();
 	}
+
+    if (multiThreaded)
+    {
+        // Wait for all threads to finish
+        for (auto &future : futures)
+        {
+            future.wait();
+        }
+
+        timer.stop();
+    }
 }
 
 /// <summary>

@@ -56,22 +56,33 @@ void ParticleEffect::update(const sf::Time &dt)
 	// Store futures in here
 	std::vector<std::future<void>> futures;
 
+	Timer timer("Particle Effect Update");
+
 	// Update particles
-	for (int i = 0; i < threadGens.size(); ++i)
+	if (!multiThreaded)
 	{
-		if (!multiThreaded)
+		std::cout << "Single Threaded" << std::endl;
+
+		for (int i = 0; i < threadGens.size(); ++i)
 		{
 			// Single threaded
 			threadGens.at(i)->update(scrW, threadAmount);
 		}
-		else
+
+		timer.stop();
+	}
+	else
+	{
+		std::cout << "Multi Threaded" << std::endl;
+
+		for (int i = 0; i < threadGens.size(); ++i)
 		{
 			// Multi threaded
 			auto f = threadPool->addJob([=]
 				{
 					threadGens.at(i)->update(scrW, threadAmount);
 				});
-			
+
 			futures.push_back(std::move(f));
 		}
 	}
@@ -83,6 +94,8 @@ void ParticleEffect::update(const sf::Time &dt)
 		{
 			future.wait();
 		}
+
+		timer.stop();
 	}
 
 	renderTexture->update(pixels.data());

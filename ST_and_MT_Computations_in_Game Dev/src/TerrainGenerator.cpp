@@ -50,6 +50,8 @@ void TerrainGenerator::generate(int width, int height, int seed, std::vector<flo
 	// Store futures in here
 	std::vector<std::future<void>> futures;
 
+	Timer timer("Terrain Generator");
+
 	if (multiThreaded)
 	{
 		int sectionW = mapWidth / 16;
@@ -79,6 +81,8 @@ void TerrainGenerator::generate(int width, int height, int seed, std::vector<flo
 	else
 	{
 		generateSection({ 0, 0 }, { mapWidth, mapHeight });
+
+		timer.stop();
 	}
 
 	if (multiThreaded)
@@ -88,6 +92,8 @@ void TerrainGenerator::generate(int width, int height, int seed, std::vector<flo
 		{
 			future.wait();
 		}
+
+		timer.stop();
 	}
 
 	float min = 0;

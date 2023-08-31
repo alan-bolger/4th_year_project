@@ -22,7 +22,7 @@ public:
 
 	~Timer()
 	{
-		stop();
+		
 	}
 
 	void stop()

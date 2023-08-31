@@ -14,6 +14,7 @@
 #include "imgui-SFML.h"
 #include "ThreadPool.h"
 #include "DefaultParticle.h"
+#include "Timer.h"
 
 struct Generator
 {
