@@ -185,15 +185,6 @@ void TerrainGenerator::generateSection(sf::Vector2i pixTL, sf::Vector2i pixBR)
 }
 
 /// <summary>
-/// Update.
-/// </summary>
-/// <param name="dt">Delta time.</param>
-void TerrainGenerator::update(const sf::Time &dt)
-{
-
-}
-
-/// <summary>
 /// Update and draw all ImGui menus.
 /// </summary>
 void TerrainGenerator::handleUI()

@@ -20,6 +20,11 @@ Application::Application() : window{ sf::VideoMode{ SCREEN_WIDTH, SCREEN_HEIGHT,
 /// </summary>
 Application::~Application()
 {
+	if (raytracer) { delete raytracer; }
+	if (pathfinding) { delete pathfinding; }
+	if (particleEffect) { delete particleEffect; }
+	if (terrainGenerator) { delete terrainGenerator; }
+
 	ImGui::SFML::Shutdown();
 }
 
@@ -191,7 +196,6 @@ void Application::draw()
 	ImGui::SFML::Render(window);
 
 	if (pathfinding != nullptr) { pathfinding->render(); }
-	//if (terrainGenerator != nullptr) { terrainGenerator->render(); }
 
 	window.display();
 }

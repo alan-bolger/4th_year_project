@@ -38,7 +38,6 @@ public:
 	~TerrainGenerator();
 	void generate(int width, int height, int seed, std::vector<float> &array);
 	void generateSection(sf::Vector2i pixTL, sf::Vector2i pixBR);
-	void update(const sf::Time &dt);
 	void handleUI();
 	void render();
 
