@@ -32,7 +32,7 @@ struct Generator
 	{
 		for (int i = 0; i < (numOfParticles / threadAmount); ++i)
 		{
-			if (particlePool[i]->alive == false)
+			if (!particlePool[i]->alive)
 			{
 				particlePool[i]->generate(startPosition, speed, timeToLive);
 			}

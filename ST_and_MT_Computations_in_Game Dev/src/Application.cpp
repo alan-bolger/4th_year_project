@@ -158,11 +158,21 @@ void Application::loadTest(TestID testID)
 			break;
 		}
 
-		case TestID::T03_PARTICLE_EFFECTS:
+		case TestID::T03_PARTICLE_EFFECT:
 		{
 			if (particleEffect == nullptr)
 			{
 				particleEffect = new ParticleEffect(timePerFrame);
+			}
+
+			break;
+		}
+
+		case TestID::T04_TERRAIN_GENERATOR:
+		{
+			if (terrainGenerator == nullptr)
+			{
+				terrainGenerator = new TerrainGenerator();
 			}
 
 			break;
@@ -180,6 +190,7 @@ void Application::draw()
 	ImGui::SFML::Render(window);
 
 	if (pathfinding != nullptr) { pathfinding->render(); }
+	if (terrainGenerator != nullptr) { terrainGenerator->render(); }
 
 	window.display();
 }

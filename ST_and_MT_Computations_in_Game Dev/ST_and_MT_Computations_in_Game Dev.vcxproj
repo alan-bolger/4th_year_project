@@ -28,6 +28,7 @@
     <ClInclude Include="h\ParticleEffect.h" />
     <ClInclude Include="h\Pathfinding.h" />
     <ClInclude Include="h\Raytracer.h" />
+    <ClInclude Include="h\TerrainGenerator.h" />
     <ClInclude Include="h\ThreadPool.h" />
     <ClInclude Include="h\TileMap.h" />
     <ClInclude Include="h\Timer.h" />
@@ -48,6 +49,7 @@
     <ClCompile Include="src\ParticleEffect.cpp" />
     <ClCompile Include="src\Pathfinding.cpp" />
     <ClCompile Include="src\Raytracer.cpp" />
+    <ClCompile Include="src\TerrainGenerator.cpp" />
     <ClCompile Include="src\ThreadPool.cpp" />
     <ClCompile Include="src\TileMap.cpp" />
   </ItemGroup>

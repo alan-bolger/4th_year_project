@@ -17,6 +17,7 @@
 #include "Raytracer.h"
 #include "Pathfinding.h"
 #include "ParticleEffect.h"
+#include "TerrainGenerator.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -24,7 +25,8 @@ enum class TestID
 {
 	T01_RAYTRACER = 0,
 	T02_PATHFINDING,
-	T03_PARTICLE_EFFECTS
+	T03_PARTICLE_EFFECT,
+	T04_TERRAIN_GENERATOR
 };
 
 class Application
@@ -42,6 +44,7 @@ private:
 	Raytracer *raytracer = nullptr;
 	Pathfinding *pathfinding = nullptr;
 	ParticleEffect *particleEffect = nullptr;
+	TerrainGenerator *terrainGenerator = nullptr;
 	sf::Time timePerFrame = sf::seconds(1.f / 60.0f);
 
 	void processEvents();
