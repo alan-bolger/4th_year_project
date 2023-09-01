@@ -14,6 +14,7 @@
 #include "imgui-SFML.h"
 #include "ThreadPool.h"
 #include "DefaultParticle.h"
+#include "Timer.h"
 
 struct Generator
 {
@@ -71,6 +72,9 @@ private:
 	bool multiThreaded = false;
 	float speed = 180.0f;
 	float timeToLive = 20.0f;
+	double ms;
+	sf::Clock clock;
+	sf::Time clTimer;
 };
 
 #endif // !PARTICLEEFFECTS_H

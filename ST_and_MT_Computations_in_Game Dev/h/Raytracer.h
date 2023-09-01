@@ -89,9 +89,10 @@ private:
     int renderTileH;
     int maxBounces;
     Vec3f backgroundColour;
-    bool multiThreaded = true;
+    bool multiThreaded = false;
     int activeSphereIndex;
     bool sphereEditWindowOpen = false;
+    double ms;
 
     void render(bool multiThreaded);
     float mix(const float &a, const float &b, const float &mix);

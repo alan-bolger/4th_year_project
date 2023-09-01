@@ -22,10 +22,10 @@ public:
 
 	~Timer()
 	{
-		stop();
+		
 	}
 
-	void stop()
+	double stop()
 	{
 		auto endTimepoint = std::chrono::high_resolution_clock::now();
 		auto start = std::chrono::time_point_cast<std::chrono::microseconds>(startTimepoint).time_since_epoch();
@@ -33,8 +33,7 @@ public:
 		auto duration = (end - start).count();
 		double ms = duration * 0.001;
 
-		// Output results to console window
-		std::cout << "[" << label << "] - Time Taken: " << ms << "ms" << std::endl;
+		return ms;
 	}
 
 private:

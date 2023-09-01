@@ -12,6 +12,7 @@
 #define PATHFINDING_H
 
 #include <SFML/Graphics.hpp>
+#include <sstream>
 
 #include "imgui.h"
 #include "imgui-SFML.h"
@@ -54,6 +55,7 @@ private:
 	sf::Vector2i destinationNode{ 4, 4 };
 	sf::Vector2f renderWindowMousePos;
 	ImVec2 renderWindowSize{ SCREEN_WIDTH, SCREEN_HEIGHT };
+	ImVec2 mousePos;
 	std::vector<sf::RectangleShape> nodes;
 	Vec3f nodeColour{ 0, 0, 1 };
 	Vec3f obstacleColour{ 1, 0, 0 };
@@ -61,7 +63,10 @@ private:
 	sf::View windowView;
 	std::vector<Bot*> bots;
 	bool mouseLeftButtonClicked = false;
+	double ms;
 
+	void loadDemoBots();
+	void writeBotPositionsToFile();
 	void startPathfinding(bool multiThreaded);
 };
 

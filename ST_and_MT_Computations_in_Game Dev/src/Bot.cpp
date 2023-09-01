@@ -8,14 +8,15 @@
 /// <param name="mapData">The map to perform pathfinding on.</param>
 Bot::Bot(int x, int y, const std::vector<int> &mapData) : position(x, y)
 {
+	int tileSize = 16;
+
 	aStar = std::make_unique<AStar>(mapData, 256, 256);
-	encapsulatedAStar = true;
 
 	texture.loadFromFile("assets/dungeon_characters.png");
 
 	sprite.setTexture(texture);
-	sprite.setTextureRect({ 0, 32, 16, 16 });
-	sprite.setPosition(x * 16, y * 16);
+	sprite.setTextureRect({ 0, 32, tileSize, tileSize }); // A little sprite of a dude
+	sprite.setPosition(x * tileSize, y * tileSize);
 }
 
 /// <summary>
@@ -87,16 +88,19 @@ void Bot::update(float botSpeed)
 /// <param name="drawPath">Set to true to draw path.</param>
 void Bot::draw(sf::RenderTarget &target, bool drawPath)
 {
+	int tileSize = 16;
+
 	if (drawPath)
 	{
 		// Draw the path
-		sf::RectangleShape rect({ 16, 16 });
+		sf::RectangleShape rect(sf::Vector2f(tileSize, tileSize));
 		rect.setOutlineThickness(-1.0f);
+		rect.setOutlineColor(sf::Color(255, 255, 255, 64));
 		rect.setFillColor(sf::Color::Transparent);
 
 		for (auto &node : *aStar->getPath())
 		{
-			rect.setPosition(node.x * 16, node.y * 16);
+			rect.setPosition(node.x * tileSize, node.y * tileSize);
 			target.draw(rect);
 		}
 	}
