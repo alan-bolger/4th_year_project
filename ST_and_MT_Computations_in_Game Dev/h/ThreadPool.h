@@ -7,6 +7,8 @@
 // of threads available. Use the
 // constructor parameter to set the number
 // of threads manually.
+// This code is based on code I used for 
+// a previous college project.
 // --------------------------------------------
 
 #ifndef THREADPOOL_H

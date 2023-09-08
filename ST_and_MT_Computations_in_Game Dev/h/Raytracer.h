@@ -3,7 +3,7 @@
 // Raytracer.cpp
 // --------------------------------------------
 // This class can render spheres using ray
-// tracing. 
+// tracing.
 // --------------------------------------------
 
 #ifndef RAYTRACER_H

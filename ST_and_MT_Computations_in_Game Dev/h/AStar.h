@@ -3,6 +3,8 @@
 // AStar.cpp
 // --------------------------------------------
 // This class provides A* pathfinding.
+// Contains code taken and modified from
+// JavidX9
 // --------------------------------------------
 
 #ifndef ASTAR_H
